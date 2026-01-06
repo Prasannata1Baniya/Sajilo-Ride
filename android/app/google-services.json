@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "121572106936",
+    "project_id": "sajilo-ride-85fd9",
+    "storage_bucket": "sajilo-ride-85fd9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:121572106936:android:b717d16287aa1e767e0a4d",
+        "android_client_info": {
+          "package_name": "com.example.sajilo_ride"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA1l9EqWZaPfcK99jhcigzUTTFbW_e2Qcs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
