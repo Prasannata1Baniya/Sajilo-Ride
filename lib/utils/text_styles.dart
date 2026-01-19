@@ -13,6 +13,13 @@ class AppTextStyles{
     fontWeight: FontWeight.bold,
   );
 
+  static const headingWhiteLogo= TextStyle(color: Colors.white,
+    fontSize: 30,
+    fontWeight: FontWeight.bold,
+    fontStyle: FontStyle.italic,
+
+  );
+
   static const bodyTextBlack= TextStyle(color: Colors.black,
     fontSize: 26,
     fontWeight: FontWeight.normal,
@@ -20,6 +27,11 @@ class AppTextStyles{
 
   static const bodyTextWhite= TextStyle(color: Colors.white,
     fontSize: 27,
+    fontWeight: FontWeight.normal,
+  );
+
+  static const smallTextWhite= TextStyle(color: Colors.white,
+    fontSize: 18,
     fontWeight: FontWeight.normal,
   );
 

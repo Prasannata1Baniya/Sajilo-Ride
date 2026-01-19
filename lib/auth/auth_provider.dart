@@ -28,23 +28,32 @@ class AuthProviderMethod extends ChangeNotifier {
   }
 
   Future<String?> signUpWithEmailAndPassword(String name, String email, String password, String role) async {
+    // 1. Create the user in Firebase Auth
     try {
       UserCredential credential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-      await credential.user!.updateDisplayName(name);
-      await _firestore.collection('users').doc(credential.user!.uid).set({
-        'name': name,
-        'email': email,
-        'role': role,
-        'uid': credential.user!.uid
-      });
 
+      // 2. Update display name
+      await credential.user!.updateDisplayName(name);
+
+      // 3. Save to Firestore
+      try {
+        await _firestore.collection('users').doc(credential.user!.uid).set({
+          'name': name,
+          'email': email,
+          'role': role,
+          'uid': credential.user!.uid,
+        });
+      } catch (firestoreError) {
+        debugPrint('Firestore error: $firestoreError');
+        await credential.user!.delete();  // Clean up the auth user
+        return 'Failed to save user data. Please try again.';
+      }
      /// await credential.user!.sendEmailVerification();
       return 'Success';
     }on FirebaseAuthException catch (e) {
-
       return e.message ?? 'An unknown error occurred. Please try again.';
     }
   }

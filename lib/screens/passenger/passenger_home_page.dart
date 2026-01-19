@@ -3,6 +3,59 @@ import 'package:sajilo_ride/data/model/car_model.dart';
 import 'package:sajilo_ride/widgets/car_card.dart';
 
 class PassengerHomeContent extends StatelessWidget {
+  PassengerHomeContent({super.key});
+
+  final List<CarModel> carList=[
+    CarModel(model: "Fortuner GR", distance: 870, pricePerHour: 45, fuelCapacity: 50,
+        image:"assets/images/car1.jpg"),
+    CarModel(model: "Fortuner GR", distance: 870, pricePerHour: 45, fuelCapacity: 50,
+        image:"assets/images/car2.jpg"),
+    CarModel(model: "Fortuner GR", distance: 870, pricePerHour: 45, fuelCapacity: 50,
+        image:"assets/images/car3.jpg"),
+    CarModel(model: "Fortuner GR", distance: 870, pricePerHour: 45, fuelCapacity: 50,
+        image:"assets/images/car4.jpg"),
+    CarModel(model: "Fortuner GR", distance: 870, pricePerHour: 45, fuelCapacity: 50,
+        image:"assets/images/car2.jpg"),
+    CarModel(model: "Fortuner GR", distance: 870, pricePerHour: 45, fuelCapacity: 50,
+        image:"assets/images/car3.jpg"),
+
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    // No longer need to manually check the screen width here.
+    // The GridView.extent will handle it.
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Choose Your Ride"),
+      ),
+      // GridView.extent is a more responsive alternative to GridView.builder
+      // for column-based layouts.
+      body: GridView.extent(
+        // This is the key property: each item will be AT MOST 350px wide.
+        // Flutter will fit as many columns as possible.
+        // On a phone: 1 column. On a tablet: 2-3 columns. On a desktop: 4+ columns.
+        maxCrossAxisExtent: 350,
+        padding: const EdgeInsets.all(16),
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 16,
+        childAspectRatio: 0.8, // Adjust this ratio to get the card shape you like
+        children: carList.map((car) {
+          // We use .map to convert the list of CarModel into a list of CarCard widgets
+          return CarCard(car: car);
+        }).toList(),
+      ),
+    );
+  }
+}
+
+
+/*import 'package:flutter/material.dart';
+import 'package:sajilo_ride/data/model/car_model.dart';
+import 'package:sajilo_ride/widgets/car_card.dart';
+
+class PassengerHomeContent extends StatelessWidget {
    PassengerHomeContent({super.key});
 
   final List<CarModel> carList=[
@@ -53,3 +106,4 @@ class PassengerHomeContent extends StatelessWidget {
     );
   }
 }
+*/

@@ -15,25 +15,40 @@ class OnBoardingPage extends StatelessWidget {
             height: double.infinity,
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage("assets/images/car_onboarding1.jpg"),
+                image: AssetImage("assets/images/onboarding_bg.png"),
                 fit: BoxFit.cover,
               ),
             ),
 
-              child:  Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        "assets/images/SajiloRide_logo.png",
-                        height: 400,
-                        semanticLabel: 'Sajilo Ride App Logo',
-                      ),
+              child:  Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    /*Image.asset(
+                      "assets/images/SajiloRide_logo.png",
+                      height: 400,
+                      semanticLabel: 'Sajilo Ride App Logo',
+                    ),*/
 
-                      const SizedBox(height: 3,),
-                      ElevatedButton(
+                  Row(
+                      children: [
+                       const  Text('SAJILO RIDE',style: AppTextStyles.headingWhiteLogo,),
+                        const Spacer(),
+                        TextButton(onPressed: (){},
+                          child:const Text('Home', style: AppTextStyles.smallTextWhite,),),
+                        const Spacer(),
+                        TextButton(onPressed: (){},
+                          child:const  Text('About',style: AppTextStyles.smallTextWhite,),),
+                        const Spacer(),
+                        TextButton(onPressed: (){},
+                          child: const Text('Contact',style: AppTextStyles.smallTextWhite,),),
+                      ],
+                    ),
+
+                    //const SizedBox(height: 20,),
+                    Center(
+                      child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -50,8 +65,8 @@ class OnBoardingPage extends StatelessWidget {
                           style: AppTextStyles.bodyTextWhite,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
       ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
-import 'package:sajilo_ride/main.dart';
 import 'package:sajilo_ride/utils/input_decoration.dart';
 import 'package:sajilo_ride/utils/text_styles.dart';
 import 'login_page.dart';
@@ -33,6 +32,11 @@ class _RegisterPageState extends State<RegisterPage> {
     _passwordController.dispose();
     _nameController.dispose();
     super.dispose();
+  }
+
+  String? addImage(){
+
+    return null;
   }
 
 
@@ -163,8 +167,27 @@ class _RegisterPageState extends State<RegisterPage> {
                                   onChanged: (value) {
                                     setState(() => selectedRole = value);
                                   },
-                                  validator: (value) => value == null ? "Please select a role" : null,
+                                  validator: (value) {
+                                    if(value==null){
+                                      return "Please enter a role";
+                                    }
+                                    return null;
+                                  }
                                 ),
+
+                                if(selectedRole == 'Driver' )
+                                  Container(
+                                    key: _formKey,
+                                    height:50,
+                                    width: 50,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: IconButton(
+                                        onPressed: addImage,
+                                        icon: const Icon(Icons.add)
+                                    ),
+                                  ),
 
                                 // This block will now display the error message from the state
                                 if (error != null)
@@ -227,6 +250,11 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 }
 
+/*
+the no-cost quotas for Cloud Storage are generally only available for buckets
+ located in specific regions like us-central1 , us-west1 ,
+and us-east1 . If your buckets are in other regions, standard Google Cloud Storage pricing will apply.
+ */
 
 /*class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});

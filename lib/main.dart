@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
 import 'package:sajilo_ride/screens/auth_page/login_page.dart';
+import 'package:sajilo_ride/screens/onboarding_page.dart';
 import 'package:sajilo_ride/widgets/app_shell.dart';
 import 'navbar/navbar_config.dart';
 import 'firebase_options.dart';
@@ -28,7 +29,7 @@ class MyApp extends StatelessWidget {
        child: const MaterialApp(
          debugShowCheckedModeBanner: false,
           title: 'Sajilo Ride',
-          home: AuthWrapper(),
+          home: OnBoardingPage(),
         ),
     );
   }
