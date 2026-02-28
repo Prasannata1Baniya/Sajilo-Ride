@@ -23,18 +23,13 @@ class PassengerHomeContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // No longer need to manually check the screen width here.
-    // The GridView.extent will handle it.
 
     return Scaffold(
       appBar: AppBar(
         title: const Text("Choose Your Ride"),
       ),
-      // GridView.extent is a more responsive alternative to GridView.builder
-      // for column-based layouts.
       body: GridView.extent(
         // This is the key property: each item will be AT MOST 350px wide.
-        // Flutter will fit as many columns as possible.
         // On a phone: 1 column. On a tablet: 2-3 columns. On a desktop: 4+ columns.
         maxCrossAxisExtent: 350,
         padding: const EdgeInsets.all(16),

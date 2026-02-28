@@ -35,7 +35,7 @@ class _LoginPageState extends State<LoginPage> {
       error = null;
     });
 
-    // Use `context.read` to get the provider. It's concise and clear.
+
     final message = await context.read<AuthProviderMethod>().loginWithEmailAndPassword(
       _emailController.text.trim(),
       _passwordController.text.trim(),

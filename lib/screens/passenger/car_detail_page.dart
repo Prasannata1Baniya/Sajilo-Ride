@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:sajilo_ride/data/model/car_model.dart'; // Make sure this path is correct
+import 'package:sajilo_ride/data/model/car_model.dart';
+import 'package:sajilo_ride/screens/passenger/booking_confirm.dart'; // Make sure this path is correct
 
 class CarDetailPage extends StatelessWidget {
   // This page requires a CarModel object to be passed to it.
@@ -11,15 +12,13 @@ class CarDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // The AppBar shows the car's model and has a back button automatically.
       appBar: AppBar(
         title: Text(car.model),
-        backgroundColor: Colors.transparent, // Makes it blend with the body
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        foregroundColor: Colors.black, // Ensures the back button is visible
+        foregroundColor: Colors.black,
       ),
       body: SingleChildScrollView(
-        // Makes the page scrollable if content is too long for the screen.
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -32,7 +31,7 @@ class CarDetailPage extends StatelessWidget {
                 child: Image.asset(
                   car.image,
                   height: 250,
-                  width: double.infinity,
+                  width: double.infinity/2,
                   fit: BoxFit.cover,
                 ),
               ),
@@ -45,11 +44,13 @@ class CarDetailPage extends StatelessWidget {
                 children: [
                   // Car Model Name
                   Expanded(
-                    child: Text(
-                      car.model,
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
+                    child: Center(
+                      child: Text(
+                        car.model,
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
@@ -92,7 +93,8 @@ class CarDetailPage extends StatelessWidget {
               const SizedBox(height: 8),
               // This is placeholder text. You could add a 'description' field to your CarModel.
               const Text(
-                'A spacious and powerful SUV perfect for family trips and off-road adventures. Features include a premium sound system, panoramic sunroof, and advanced safety features for a secure and enjoyable ride.',
+                'A spacious and powerful SUV perfect for family trips and off-road adventures. '
+                    'Features include a premium sound system, panoramic sunroof, and advanced safety features for a secure and enjoyable ride.',
                 style: TextStyle(fontSize: 16, color: Colors.black54, height: 1.5),
               ),
               const SizedBox(height: 80), // Extra space to not overlap with button
@@ -107,12 +109,19 @@ class CarDetailPage extends StatelessWidget {
       floatingActionButton: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: SizedBox(
-          width: double.infinity,
+          width: 300,
           height: 55,
           child: FloatingActionButton.extended(
             onPressed: () {
-              // This is where you will add your booking logic.
-              // For now, it just shows a confirmation message.
+
+              // Booking logic.
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => BookingConfirmContent(car: car),
+                ),
+              );
+
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Booking for ${car.model} initiated!'),
@@ -131,8 +140,6 @@ class CarDetailPage extends StatelessWidget {
     );
   }
 
-  // This is a helper widget to avoid repeating code for the spec chips.
-  // It makes the main build method cleaner and easier to read.
   Widget _buildSpecChip(String title, String value) {
     return Column(
       children: [

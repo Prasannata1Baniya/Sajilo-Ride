@@ -29,19 +29,15 @@ class CarCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch, // Stretch children to fill width
           children: [
-            // --- RESPONSIVE IMAGE ---
-            // The image no longer has a fixed height. It's flexible.
-            // Using AspectRatio is great for maintaining shape.
             AspectRatio(
-              aspectRatio: 16 / 10, // A common aspect ratio for images
+              aspectRatio: 16 / 10,
               child: Image.asset(
                 car.image,
-                fit: BoxFit.cover, // Ensures the image covers the area without distortion
+                fit: BoxFit.cover,
               ),
             ),
 
             // --- DETAILS SECTION ---
-            // Padding contains the text content
             Padding(
               padding: const EdgeInsets.all(12.0),
               child: Column(
@@ -68,7 +64,6 @@ class CarCard extends StatelessWidget {
               ),
             ),
 
-            // Pushes the button to the bottom if there's extra space
             const Spacer(),
 
             // --- BOOKING BUTTON ---
@@ -93,7 +88,7 @@ class CarCard extends StatelessWidget {
                 child: const Center(
                     child: Text(
                       "View Details",
-                      style: AppTextStyles.bodyTextWhite,
+                      style: AppTextStyles.smallTextWhite,
                     )),
               ),
             ),
@@ -103,7 +98,7 @@ class CarCard extends StatelessWidget {
     );
   }
 
-  // Helper method to create consistent info rows and avoid repeated code
+
   Widget _buildInfoRow({required IconData icon, required String label, required String value}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4.0),
