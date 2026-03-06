@@ -29,13 +29,12 @@ class PassengerHomeContent extends StatelessWidget {
         title: const Text("Choose Your Ride"),
       ),
       body: GridView.extent(
-        // This is the key property: each item will be AT MOST 350px wide.
         // On a phone: 1 column. On a tablet: 2-3 columns. On a desktop: 4+ columns.
         maxCrossAxisExtent: 350,
         padding: const EdgeInsets.all(16),
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
-        childAspectRatio: 0.8, // Adjust this ratio to get the card shape you like
+        childAspectRatio: 0.75,  // Adjust this ratio to get the card shape you like
         children: carList.map((car) {
           // We use .map to convert the list of CarModel into a list of CarCard widgets
           return CarCard(car: car);

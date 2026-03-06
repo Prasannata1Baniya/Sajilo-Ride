@@ -1,30 +1,91 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:sajilo_ride/auth/auth_provider.dart';
 
 class MyRidesPage extends StatelessWidget {
   const MyRidesPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // For now, we will show a placeholder.
-    // In the future, you would use a StreamBuilder to fetch active bookings from Firestore.
-
-    final bool hasActiveRide = false; // Change to true to see the other view
+    final authProvider = Provider.of<AuthProviderMethod>(context);
+    final userId = authProvider.user?.uid;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("My Active Rides"),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: Colors.black,
-      ),
-      body: Center(
-        child: hasActiveRide
-            ? _buildActiveRideCard() // Display this if a ride is active
-            : _buildNoRidesPlaceholder(), // Display this if there are no active rides
+      appBar: AppBar(title: const Text("My Active Rides")),
+      // REAL-TIME STREAM: Listens to the 'bookings' collection
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('bookings')
+            .where('passengerId', isEqualTo: userId)
+            .where('status', whereIn: ['pending', 'accepted', 'ongoing']) // Show all active states
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return _buildNoRidesPlaceholder();
+          }
+
+          // If there are active rides, show them in a list
+          return ListView.builder(
+            itemCount: snapshot.data!.docs.length,
+            itemBuilder: (context, index) {
+              var bookingData = snapshot.data!.docs[index].data() as Map<String, dynamic>;
+              return _buildActiveRideCard(bookingData);
+            },
+          );
+        },
       ),
     );
   }
 
+  Widget _buildActiveRideCard(Map<String, dynamic> data) {
+    // Dynamic status colors for a professional feel
+    Color statusColor = data['status'] == 'pending' ? Colors.orange : Colors.green;
+
+    return Card(
+      margin: const EdgeInsets.all(15),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(data['carModel'], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(color: statusColor.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                  child: Text(data['status'].toUpperCase(), style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 12)),
+                ),
+              ],
+            ),
+            const Divider(height: 30),
+            const Row(
+              children: [
+                Icon(Icons.location_on, color: Colors.red, size: 20),
+                SizedBox(width: 10),
+                Text("Pickup: Kathmandu, Nepal"), // Replace with real data if available
+              ],
+            ),
+            const SizedBox(height: 20),
+            if (data['status'] == 'pending')
+              const Text("Searching for nearby drivers...", style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey))
+            else
+              const LinearProgressIndicator(),
+          ],
+        ),
+      ),
+    );
+  }
+
+// Use your existing _buildNoRidesPlaceholder here...
+}
   // Placeholder for when there are no active rides
   Widget _buildNoRidesPlaceholder() {
     return Column(
@@ -48,31 +109,3 @@ class MyRidesPage extends StatelessWidget {
       ],
     );
   }
-
-  // An example card to show when a ride is active
-  Widget _buildActiveRideCard() {
-    return Card(
-      margin: const EdgeInsets.all(20),
-      elevation: 5,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: const Padding(
-        padding:  EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children:  [
-            Text(
-              "Driver is on the way!",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.orange),
-            ),
-            SizedBox(height: 20),
-            Text("Fortuner GR-S", style: TextStyle(fontSize: 18)),
-            SizedBox(height: 10),
-            Text("Plate No: BA 12 PA 3456"),
-            SizedBox(height: 20),
-            LinearProgressIndicator(), // To show progress
-          ],
-        ),
-      ),
-    );
-  }
-}

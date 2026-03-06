@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sajilo_ride/screens/driver/profile.dart';
-import 'package:sajilo_ride/screens/profile_page.dart';
 import '../screens/driver/active_ride.dart';
 import '../screens/driver/car_management.dart';
 import '../screens/driver/driver_home_page.dart';

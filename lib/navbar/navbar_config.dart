@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sajilo_ride/screens/driver/driver_home_page.dart';
-import 'package:sajilo_ride/screens/passenger/booking_confirm.dart';
 import 'package:sajilo_ride/screens/passenger/rides_page.dart';
 
 import '../screens/driver/active_ride.dart';
@@ -28,8 +27,9 @@ class NavItem {
 // Navigation items for the Passenger
  List<NavItem> passengerDestinations = [
   NavItem(label: 'Home', icon: Icons.home, screen: PassengerHomeContent()),
-  const NavItem(label: "Booking", icon: Icons.book_online_outlined, screen: MyRidesPage());
-  //const NavItem(label: 'Booking', icon: Icons.book_online_outlined,screen: BookingConfirmContent(car: null,)),
+  const NavItem(label: "Booking", icon: Icons.book_online_outlined, screen: MyRidesPage()),
+  //const NavItem(label: 'Booking', icon: Icons.book_online_outlined,screen:
+  // BookingConfirmContent(car: null,)),
   const NavItem(label: 'History', icon: Icons.history_outlined, screen: RideHistoryContent()),
   const NavItem(label: 'Profile', icon: Icons.person_outline, screen: ProfileContent()),
 ];
