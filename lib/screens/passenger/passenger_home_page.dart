@@ -99,9 +99,10 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
             initialCenter: _currentCenter,
             initialZoom: 14.0,
             onPositionChanged: (pos, hasGesture) {
-              if (hasGesture && pos.center != null) {
+              // We only update the center if the user actually moved the map (hasGesture)
+              if (hasGesture) {
                 setState(() {
-                  _currentCenter = pos.center!;
+                  _currentCenter = pos.center;
                 });
               }
             },

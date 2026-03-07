@@ -26,7 +26,7 @@ class NavItem {
 
 // Navigation items for the Passenger
  List<NavItem> passengerDestinations = [
-  NavItem(label: 'Home', icon: Icons.home, screen: PassengerHomeContent()),
+  const NavItem(label: 'Home', icon: Icons.home, screen: PassengerHomeContent()),
   const NavItem(label: "Booking", icon: Icons.book_online_outlined, screen: MyRidesPage()),
   //const NavItem(label: 'Booking', icon: Icons.book_online_outlined,screen:
   // BookingConfirmContent(car: null,)),
