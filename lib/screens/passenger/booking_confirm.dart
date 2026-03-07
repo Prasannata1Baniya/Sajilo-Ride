@@ -107,7 +107,3 @@ class BookingConfirmContent extends StatelessWidget {
     );
   }
 }
-
-
-
-

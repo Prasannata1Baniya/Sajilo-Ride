@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sajilo_ride/screens/driver/profile.dart';
-import '../screens/driver/active_ride.dart';
 import '../screens/driver/car_management.dart';
 import '../screens/driver/driver_home_page.dart';
 import '../screens/driver/earning.dart';
@@ -27,9 +26,9 @@ class _NavigationShellState extends State<NavigationShell> {
   final List<NavItem> _destinations = const [
     NavItem(label: 'Home', icon: Icons.home_outlined, screen: DriverHomeContent()),
     NavItem(label: 'Earning', icon: Icons.monetization_on_outlined, screen: CarManagementContent()),
-    NavItem(label: 'Booking', icon: Icons.book_online_outlined, screen: ActiveRideContent()),
-    NavItem(label: 'Earning', icon: Icons.monetization_on_outlined, screen: EarningContent()),
-    NavItem(label: 'Profile', icon: Icons.person_outline, screen: ProfileContent()),
+    //NavItem(label: 'Booking', icon: Icons.book_online_outlined, screen: ActiveRideContent()),
+    NavItem(label: 'Earning', icon: Icons.monetization_on_outlined, screen: DriversEarningContent()),
+    NavItem(label: 'Profile', icon: Icons.person_outline, screen: DriverProfileContent()),
   ];
 
   void _onItemTapped(int index) {

@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
-import 'driver_map_page.dart'; // We will create this screen next
+import 'package:sajilo_ride/screens/driver/active_ride.dart';
+import 'driver_map_page.dart';
 
 class DriverHomeContent extends StatelessWidget {
   const DriverHomeContent({super.key});
@@ -106,7 +107,8 @@ class DriverHomeContent extends StatelessWidget {
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () => _acceptRide(context, docId, driverId),
+                    // Pass 'data' here so the function can send it to the ActiveRidePage
+                    onPressed: () => _acceptRide(context, docId, driverId, data),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                       foregroundColor: Colors.white,
@@ -129,8 +131,10 @@ class DriverHomeContent extends StatelessWidget {
   }
 
   // --- LOGIC: ACCEPT RIDE ---
-  Future<void> _acceptRide(BuildContext context, String docId, String driverId) async {
+  // 1. Update the function to accept the 'data' map
+  Future<void> _acceptRide(BuildContext context, String docId, String driverId, Map<String, dynamic> data) async {
     try {
+      // Update Firestore status first
       await FirebaseFirestore.instance.collection('bookings').doc(docId).update({
         'status': 'accepted',
         'driverId': driverId,
@@ -141,12 +145,24 @@ class DriverHomeContent extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Ride Accepted!"), backgroundColor: Colors.green),
         );
+
+        // 2. NAVIGATE TO ACTIVE RIDE PAGE IMMEDIATELY
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ActiveRideContent(
+              bookingId: docId,
+              bookingData: data,
+            ),
+          ),
+        );
       }
     } catch (e) {
-      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
+      }
     }
   }
-
   Widget _buildNoRequests() {
     return Center(
       child: Column(
