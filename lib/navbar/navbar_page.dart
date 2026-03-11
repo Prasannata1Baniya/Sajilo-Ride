@@ -5,8 +5,9 @@ import '../screens/driver/car_management.dart';
 import '../screens/driver/earning.dart';
 import '../screens/driver/profile.dart';
 import '../screens/passenger/passenger_home_page.dart';
+import '../screens/passenger/profile.dart';
 import '../screens/passenger/ride_history.dart';
-import '../screens/profile_page.dart'; // Make sure this import is correct
+
 
 // Role Enum
 enum UserRole { passenger, driver }
