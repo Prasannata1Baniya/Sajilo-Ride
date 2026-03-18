@@ -141,9 +141,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         width: MediaQuery.of(context).size.width * 0.85,
                         padding: const EdgeInsets.all(24.0),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(25),
-                          border: Border.all(width: 1.5, color: Colors.white.withOpacity(0.2)),
+                          border: Border.all(width: 1.5, color: Colors.white.withValues(alpha:0.2)),
                         ),
                         child: Form(
                           key: _formKey,
@@ -180,7 +180,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               const SizedBox(height: 16),
 
                               DropdownButtonFormField<String>(
-                                value: selectedRole,
+                                initialValue: selectedRole,
                                 decoration: inputDecorate.buildInputDecoration("Select Role"),
                                 dropdownColor: Colors.black87,
                                 style: const TextStyle(color: Colors.white),
@@ -206,7 +206,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                     height: 110,
                                     width: double.infinity,
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.05),
+                                      color: Colors.white.withValues(alpha: 0.05),
                                       borderRadius: BorderRadius.circular(15),
                                       border: Border.all(color: Colors.white24, width: 1.5),
                                     ),

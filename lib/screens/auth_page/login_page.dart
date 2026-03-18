@@ -97,9 +97,9 @@ class _LoginPageState extends State<LoginPage> {
                         width: 700,  // KEPT ORIGINAL
                         padding: const EdgeInsets.all(20.0),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(25),
-                          border: Border.all(width: 1.5, color: Colors.white.withOpacity(0.2)),
+                          border: Border.all(width: 1.5, color: Colors.white.withValues(alpha: 0.2),),
                         ),
                         child: Form(
                           key: _formKey,
