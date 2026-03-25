@@ -58,7 +58,7 @@ class BookingConfirmContent extends StatelessWidget {
               ),
               const SizedBox(height: 50),
 
-              // --- 4. ACTION BUTTONS ---
+              // --- ACTION BUTTONS ---
               SizedBox(
                 width: double.infinity,
                 height: 55,
@@ -80,15 +80,14 @@ class BookingConfirmContent extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) => const AppShell(
-                        userRole: UserRole.passenger, // Since only passengers book cars
-                        initialIndex: 1,              // This opens the Booking tab
+                        userRole: UserRole.passenger,
+                        initialIndex: 1,
                       ),
                     ),
                         (route) => false,
                   );
                 },
-                child: const Text("View My Rides",
-                    style: TextStyle(color: Colors.orange, fontSize: 16)),
+                child: const Text("View My Rides", style: TextStyle(color: Colors.orange, fontSize: 16)),
               ),
             ],
           ),

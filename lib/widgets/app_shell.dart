@@ -22,7 +22,8 @@ class _AppShellState extends State<AppShell> {
   @override
   void initState() {
     super.initState();
-    _destinations = getDestinationsForRole(widget.userRole);
+    _currentIndex = widget.initialIndex;
+    //_destinations = getDestinationsForRole(widget.userRole);
   }
 
   void _onItemTapped(int index) {
