@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sajilo_ride/data/model/car_model.dart';
-import 'package:sajilo_ride/screens/passenger/rides_page.dart';
+import '../../navbar/navbar_config.dart';
+import '../../widgets/app_shell.dart';
 
 
 class BookingConfirmContent extends StatelessWidget {
@@ -67,7 +68,6 @@ class BookingConfirmContent extends StatelessWidget {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: () {
-                    // Navigate back to the Home/NavBar page and clear the stack
                     Navigator.of(context).popUntil((route) => route.isFirst);
                   },
                   child: const Text("Back to Home", style: TextStyle(color: Colors.white, fontSize: 18)),
@@ -79,12 +79,16 @@ class BookingConfirmContent extends StatelessWidget {
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const MyRidesPage(),
+                      builder: (context) => const AppShell(
+                        userRole: UserRole.passenger, // Since only passengers book cars
+                        initialIndex: 1,              // This opens the Booking tab
+                      ),
                     ),
                         (route) => false,
                   );
                 },
-                child: const Text("View My Rides", style: TextStyle(color: Colors.orange, fontSize: 16)),
+                child: const Text("View My Rides",
+                    style: TextStyle(color: Colors.orange, fontSize: 16)),
               ),
             ],
           ),

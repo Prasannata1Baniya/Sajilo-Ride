@@ -3,21 +3,20 @@ import '../navbar/navbar_config.dart';
 
 
 class AppShell extends StatefulWidget {
-  final UserRole userRole;
+final UserRole userRole;
+final int initialIndex;
 
-  const AppShell({
-    super.key,
-    required this.userRole,
-  });
+const AppShell({
+super.key,
+required this.userRole,this.initialIndex = 0,
+});
 
-  @override
-  State<AppShell> createState() => _AppShellState();
+@override
+State<AppShell> createState() => _AppShellState();
 }
 
 class _AppShellState extends State<AppShell> {
-  int _currentIndex = 0;
-
-  // The list of destinations is now determined at build time.
+  late int _currentIndex = widget.initialIndex;
   late List<NavItem> _destinations;
 
   @override
