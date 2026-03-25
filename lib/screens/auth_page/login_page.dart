@@ -163,15 +163,22 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterPage()));
-                        },
-                        child: const Text(
-                            "Don't have an account? Register",
-                            style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w400)
+                        Row(
+                          children: [
+                            const Text(
+                                "Don't have an account? ",
+                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w400)
+                            ),
+                            TextButton(
+                                onPressed: () {
+                                  Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterPage()));
+                                },
+                                child: Text("Register ",
+                                style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w400),
+                                ),
+                            ),
+                          ],
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -181,84 +188,6 @@ class _LoginPageState extends State<LoginPage> {
         ],
       ),
     ),
-            /*SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text("Login", style: AppTextStyles.headingWhite),
-                  const SizedBox(height: 20),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(25),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                      child: Container(
-                        height: 500, // KEPT ORIGINAL
-                        width: 700,  // KEPT ORIGINAL
-                        padding: const EdgeInsets.all(20.0),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(25),
-                          border: Border.all(width: 1.5, color: Colors.white.withValues(alpha: 0.2),),
-                        ),
-                        child: Form(
-                          key: _formKey,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Image.asset("assets/images/SajiloRide_logo.png", height: 120),
-                              const SizedBox(height: 20),
-                              TextFormField(
-                                controller: _emailController,
-                                style: const TextStyle(color: Colors.white),
-                                keyboardType: TextInputType.emailAddress,
-                                decoration: inputDecorate.buildInputDecoration("Email"),
-                                validator: (value) => (value == null || !value.contains('@')) ? 'Enter a valid email' : null,
-                              ),
-                              const SizedBox(height: 16),
-                              TextFormField(
-                                controller: _passwordController,
-                                style: const TextStyle(color: Colors.white),
-                                obscureText: true,
-                                decoration: inputDecorate.buildInputDecoration("Password"),
-                                validator: (value) => (value == null || value.length < 6) ? 'Password must be at least 6 characters' : null,
-                              ),
-                              if (error != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 15, bottom: 5),
-                                  child: Text(error!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
-                                ),
-                              const SizedBox(height: 24),
-                              SizedBox(
-                                width: 150,
-                                height: 50,
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    elevation: 5,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                    backgroundColor: Colors.orangeAccent,
-                                  ),
-                                  onPressed: isLoading ? null : _handleLogin,
-                                  child: isLoading
-                                      ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 3)
-                                      : const Text("Login", style: AppTextStyles.bodyTextWhite),
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterPage()));
-                                },
-                                child: const Text("Create new account", style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),*/
           ),
         ],
       ),
