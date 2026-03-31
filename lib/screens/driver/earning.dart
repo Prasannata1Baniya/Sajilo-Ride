@@ -14,7 +14,7 @@ class DriversEarningContent extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("My Earnings"),
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.orange,
         foregroundColor: Colors.white,
       ),
       body: StreamBuilder<QuerySnapshot>(

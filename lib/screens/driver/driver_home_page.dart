@@ -80,7 +80,6 @@ class DriverHomeContent extends StatelessWidget {
               ],
             ),
 
-            // --- NEW: PICKUP LOCATION DISPLAY ---
             const Divider(height: 30),
             Row(
               children: [
@@ -89,7 +88,7 @@ class DriverHomeContent extends StatelessWidget {
                 const Expanded(child: Text("Pickup: Kathmandu (Click to see on Map)", style: TextStyle(color: Colors.black54))),
                 TextButton.icon(
                   onPressed: () {
-                    // Open a full-screen map to show the passenger's location
+
                     Navigator.push(context, MaterialPageRoute(builder: (context) => DriverMapPage(
                       pickupLocation: LatLng(data['pickupLat'], data['pickupLng']),
                       bookingId: docId,

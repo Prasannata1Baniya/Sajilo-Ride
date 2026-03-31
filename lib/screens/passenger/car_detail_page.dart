@@ -23,8 +23,6 @@ class CarDetailPage extends StatefulWidget {
 
 class _CarDetailPageState extends State<CarDetailPage> {
   String selectedPayment = "Cash";
-
-  // eSewa Test Credentials from your Documentation
   static const String clientId = "JB0BBQ4aD0UqIThFJwAKBgAXEUkEGQUBBAwdOgABHD4DChwUAB0R";
   static const String secretKey= "BhwIWQQADhIYSxILExMcAgFXFhcOBwAKBgAXEQ==";
 

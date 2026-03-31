@@ -178,10 +178,10 @@ class MyRidesPage extends StatelessWidget {
               ),
             ),
 
-            // 3. BOTTOM ACTION SECTION (Contextual UI)
+            // 3. BOTTOM ACTION SECTION
             Container(
               padding: const EdgeInsets.all(20),
-              color: const Color(0xFFF9FAFB), // Slightly different shade for the footer
+              color: const Color(0xFFF9FAFB),
               child: Column(
                 children: [
                   if (status == 'pending') ...[

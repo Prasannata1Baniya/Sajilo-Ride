@@ -29,7 +29,12 @@ class CarCard extends StatelessWidget {
           children: [
             AspectRatio(
               aspectRatio: 1.5,
-              child: Image.asset(
+              child: car.image.startsWith('http')
+                  ? Image.network(car.image,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => const Icon(Icons.directions_car, size: 50),
+              )
+                  : Image.asset(
                 car.image,
                 fit: BoxFit.cover,
               ),

@@ -1,5 +1,7 @@
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io' show File;
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -20,48 +22,39 @@ class _CarManagementContentState extends State<CarManagementContent> {
   final TextEditingController _modelController = TextEditingController();
   final TextEditingController _plateController = TextEditingController();
   final TextEditingController _colorController = TextEditingController();
+  final TextEditingController _priceController = TextEditingController();
+  final TextEditingController _distanceController = TextEditingController();
+  final TextEditingController _fuelCapacityController = TextEditingController();
 
   String _fuelType = 'Petrol';
-  String? _carImageUrl; // Existing URL from Firestore
-  File? _selectedImage; // Newly picked local file
+  String? _carImageUrl;
+
+  // WEB + MOBILE SUPPORT
+  Uint8List? _webImage;
+  File? _mobileImage;
+
   bool _isLoading = false;
 
-  // --- LOGIC: PICK IMAGE FROM GALLERY ---
+  final ImagePicker _picker = ImagePicker();
+
   Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(
+    final pickedFile = await _picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 50, // Reduce size for faster free upload
+      imageQuality: 50,
     );
+
     if (pickedFile != null) {
-      setState(() {
-        _selectedImage = File(pickedFile.path);
-      });
-    }
-  }
-
-  // --- LOGIC: UPLOAD TO CLOUDINARY (FREE STORAGE) ---
-  Future<String?> _uploadToCloudinary(File imageFile) async {
-    // Replace 'YOUR_CLOUD_NAME' with your actual Cloudinary name
-    // Replace 'YOUR_UPLOAD_PRESET' with your unsigned preset name
-    const String cloudName = "dvezp7njs";
-    const String uploadPreset = "sajilo_preset";
-
-    final url = Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
-
-    final request = http.MultipartRequest('POST', url)
-      ..fields['upload_preset'] = uploadPreset
-      ..files.add(await http.MultipartFile.fromPath('file', imageFile.path));
-
-    try {
-      final response = await request.send();
-      if (response.statusCode == 200) {
-        final responseData = await response.stream.bytesToString();
-        return jsonDecode(responseData)['secure_url'];
+      if (kIsWeb) {
+        final bytes = await pickedFile.readAsBytes();
+        setState(() {
+          _webImage = bytes;
+        });
+      } else {
+        setState(() {
+          _mobileImage = File(pickedFile.path);
+        });
       }
-    } catch (e) {
-      debugPrint("Upload Error: $e");
     }
-    return null;
   }
 
   @override
@@ -76,7 +69,10 @@ class _CarManagementContentState extends State<CarManagementContent> {
         foregroundColor: Colors.white,
       ),
       body: StreamBuilder<DocumentSnapshot>(
-        stream: FirebaseFirestore.instance.collection('drivers').doc(driverId).snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('drivers')
+            .doc(driverId)
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -84,12 +80,19 @@ class _CarManagementContentState extends State<CarManagementContent> {
 
           if (snapshot.hasData && snapshot.data!.exists) {
             var data = snapshot.data!.data() as Map<String, dynamic>;
-            // Only update controllers if they are empty to prevent cursor jumping
-            if (_modelController.text.isEmpty) _modelController.text = data['carModel'] ?? '';
-            if (_plateController.text.isEmpty) _plateController.text = data['plateNumber'] ?? '';
-            if (_colorController.text.isEmpty) _colorController.text = data['carColor'] ?? '';
+
+            if (_modelController.text.isEmpty) {
+              _modelController.text = data['carModel'] ?? '';
+            }
+            if (_plateController.text.isEmpty) {
+              _plateController.text = data['plateNumber'] ?? '';
+            }
+            if (_colorController.text.isEmpty) {
+              _colorController.text = data['carColor'] ?? '';
+            }
+
             _fuelType = data['fuelType'] ?? 'Petrol';
-            _carImageUrl = data['carImage']; // Load the URL
+            _carImageUrl = data['carImage'];
           }
 
           return SingleChildScrollView(
@@ -99,9 +102,11 @@ class _CarManagementContentState extends State<CarManagementContent> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // --- IMAGE SECTION ---
-                  const Text("Car Photo", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const Text("Car Photo",
+                      style:
+                      TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 10),
+
                   GestureDetector(
                     onTap: _pickImage,
                     child: Container(
@@ -110,40 +115,85 @@ class _CarManagementContentState extends State<CarManagementContent> {
                       decoration: BoxDecoration(
                         color: Colors.grey[200],
                         borderRadius: BorderRadius.circular(15),
-                        border: Border.all(color: Colors.orange.withValues(alpha: 0.5)),
-                        image: _selectedImage != null
-                            ? DecorationImage(image: FileImage(_selectedImage!), fit: BoxFit.cover)
+                        border: Border.all(
+                            color: Colors.orange.withValues(alpha: 0.5)),
+                        image: _webImage != null
+                            ? DecorationImage(
+                            image: MemoryImage(_webImage!),
+                            fit: BoxFit.cover)
+                            : (_mobileImage != null
+                            ? DecorationImage(
+                            image: FileImage(_mobileImage!),
+                            fit: BoxFit.cover)
                             : (_carImageUrl != null
-                            ? DecorationImage(image: NetworkImage(_carImageUrl!), fit: BoxFit.cover)
-                            : null),
+                            ? DecorationImage(
+                            image: NetworkImage(_carImageUrl!),
+                            fit: BoxFit.cover)
+                            : null)),
                       ),
-                      child: (_selectedImage == null && _carImageUrl == null)
+                      child: (_webImage == null &&
+                          _mobileImage == null &&
+                          _carImageUrl == null)
                           ? const Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.add_a_photo, size: 50, color: Colors.orange),
-                          Text("Upload Car Image", style: TextStyle(color: Colors.orange)),
+                          Icon(Icons.add_a_photo,
+                              size: 50, color: Colors.orange),
+                          Text("Upload Car Image",
+                              style: TextStyle(color: Colors.orange)),
                         ],
                       )
                           : null,
                     ),
                   ),
+
                   const SizedBox(height: 30),
 
-                  _buildTextField(_modelController, "Car Model", "e.g. Toyota Corolla", Icons.car_rental),
-                  _buildTextField(_plateController, "License Plate", "e.g. BA 1 PA 1234", Icons.numbers),
-                  _buildTextField(_colorController, "Car Color", "e.g. White", Icons.color_lens),
+                  _buildTextField(_modelController, "Car Model",
+                      "e.g. Toyota Corolla", Icons.car_rental),
+                  _buildTextField(_plateController, "License Plate",
+                      "e.g. BA 1 PA 1234", Icons.numbers),
+                  _buildTextField(_colorController, "Car Color",
+                      "e.g. White", Icons.color_lens),
 
-                  const Text("Fuel Type", style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 20),
+
+                  const Text("Fuel Type",
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+
                   DropdownButton<String>(
                     isExpanded: true,
                     value: _fuelType,
-                    items: ['Petrol', 'Diesel', 'Electric', 'Hybrid'].map((String value) {
-                      return DropdownMenuItem<String>(value: value, child: Text(value));
-                    }).toList(),
+                    items: ['Petrol', 'Diesel', 'Electric', 'Hybrid']
+                        .map((value) => DropdownMenuItem(
+                      value: value,
+                      child: Text(value),
+                    ))
+                        .toList(),
                     onChanged: (newValue) {
                       setState(() => _fuelType = newValue!);
                     },
+                  ),
+
+                  _buildTextField(
+                    _priceController,
+                    "Price per Hour",
+                    "e.g. 500",
+                    Icons.attach_money,
+                  ),
+
+                  _buildTextField(
+                    _distanceController,
+                    "Distance (km)",
+                    "e.g. 10",
+                    Icons.social_distance,
+                  ),
+
+                  _buildTextField(
+                    _fuelCapacityController,
+                    "Fuel Capacity (liters)",
+                    "e.g. 40",
+                    Icons.local_gas_station,
                   ),
 
                   const SizedBox(height: 40),
@@ -154,12 +204,20 @@ class _CarManagementContentState extends State<CarManagementContent> {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.orange,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
-                      onPressed: _isLoading ? null : () => _saveCarDetails(driverId!),
+                      onPressed:
+                      _isLoading ? null : () => _saveCarDetails(driverId!),
                       child: _isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text("SAVE VEHICLE DETAILS", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          ? const CircularProgressIndicator(
+                          color: Colors.white)
+                          : const Text(
+                        "SAVE VEHICLE DETAILS",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ),
                 ],
@@ -171,7 +229,8 @@ class _CarManagementContentState extends State<CarManagementContent> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, String hint, IconData icon) {
+  Widget _buildTextField(TextEditingController controller, String label,
+      String hint, IconData icon) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: TextFormField(
@@ -180,205 +239,105 @@ class _CarManagementContentState extends State<CarManagementContent> {
           labelText: label,
           hintText: hint,
           prefixIcon: Icon(icon),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12)),
         ),
-        validator: (value) => value!.isEmpty ? "Required field" : null,
+        validator: (value) =>
+        value == null || value.isEmpty ? "Required field" : null,
       ),
     );
   }
 
-  // --- LOGIC: UPLOAD IMAGE THEN SAVE DATA ---
+  // CLOUDINARY UPLOAD (WEB + MOBILE)
+  Future<String?> _uploadToCloudinary() async {
+    const cloudName = "dvezp7njs";
+    const uploadPreset = "sajilo_preset";
+
+    final uri =
+    Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
+
+    try {
+      var request = http.MultipartRequest('POST', uri);
+      request.fields['upload_preset'] = uploadPreset;
+
+      if (kIsWeb) {
+        request.files.add(http.MultipartFile.fromBytes(
+          'file',
+          _webImage!,
+          filename: 'upload.jpg',
+        ));
+      } else {
+        request.files.add(await http.MultipartFile.fromPath(
+          'file',
+          _mobileImage!.path,
+        ));
+      }
+
+      final response = await request.send();
+      final resBody = await response.stream.bytesToString();
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(resBody);
+        return data['secure_url'];
+      } else {
+        debugPrint("Cloudinary error: $resBody");
+        return null;
+      }
+    } catch (e) {
+      debugPrint("Upload error: $e");
+      return null;
+    }
+  }
+
   Future<void> _saveCarDetails(String driverId) async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
+    if (!_formKey.currentState!.validate()) return;
 
-      try {
-        String? finalImageUrl = _carImageUrl;
+    setState(() => _isLoading = true);
 
-        // 1. If a NEW image was picked, upload it to Cloudinary
-        if (_selectedImage != null) {
-          finalImageUrl = await _uploadToCloudinary(_selectedImage!);
+    try {
+      String? finalImageUrl = _carImageUrl;
+
+      if (_webImage != null || _mobileImage != null) {
+        finalImageUrl = await _uploadToCloudinary();
+
+        if (finalImageUrl == null) {
+          throw Exception("Image upload failed");
         }
+      }
 
-        // 2. Save all details (including image URL) to Firestore
-        await FirebaseFirestore.instance.collection('drivers').doc(driverId).set({
-          'carModel': _modelController.text,
-          'plateNumber': _plateController.text,
-          'carColor': _colorController.text,
-          'fuelType': _fuelType,
-          'carImage': finalImageUrl, // The URL is saved here
-          'updatedAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
+      await FirebaseFirestore.instance
+          .collection('drivers')
+          .doc(driverId)
+          .set({
+        'carModel': _modelController.text,
+        'plateNumber': _plateController.text,
+        'carColor': _colorController.text,
+        'fuelType': _fuelType,
+        'carImage': finalImageUrl,
+        'pricePerHour':
+        double.tryParse(_priceController.text) ?? 0.0,
+        'distance':
+        double.tryParse(_distanceController.text) ?? 0.0,
+        'fuelCapacity':
+        double.tryParse(_fuelCapacityController.text) ?? 0.0,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
 
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Vehicle details updated successfully!"), backgroundColor: Colors.green),
-          );
-        }
-      } catch (e) {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
-      } finally {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Details updated!"),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      debugPrint("Error: $e");
+    } finally {
+      if (mounted) {
         setState(() => _isLoading = false);
       }
     }
   }
 }
 
-
-
-
-
-
-
-
-/*import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:sajilo_ride/auth/auth_provider.dart';
-
-class CarManagementContent extends StatefulWidget {
-  const CarManagementContent({super.key});
-
-  @override
-  State<CarManagementContent> createState() => _CarManagementContentState();
-}
-
-class _CarManagementContentState extends State<CarManagementContent> {
-  final _formKey = GlobalKey<FormState>();
-
-  final TextEditingController _modelController = TextEditingController();
-  final TextEditingController _plateController = TextEditingController();
-  final TextEditingController _colorController = TextEditingController();
-  String _fuelType = 'Petrol'; // Default value
-
-  bool _isLoading = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProviderMethod>(context);
-    final driverId = authProvider.user?.uid;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Car Management"),
-        backgroundColor: Colors.orange,
-        foregroundColor: Colors.white,
-      ),
-      body: StreamBuilder<DocumentSnapshot>(
-        stream: FirebaseFirestore.instance.collection('drivers').doc(driverId).snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          // If data exists, pre-fill the controllers
-          if (snapshot.hasData && snapshot.data!.exists) {
-            var data = snapshot.data!.data() as Map<String, dynamic>;
-            _modelController.text = data['carModel'] ?? '';
-            _plateController.text = data['plateNumber'] ?? '';
-            _colorController.text = data['carColor'] ?? '';
-            _fuelType = data['fuelType'] ?? 'Petrol';
-          }
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Center(
-                    child: Icon(Icons.directions_car_filled, size: 80, color: Colors.orange),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text("Vehicle Information", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                  const Text("Update your car details so passengers can identify you.", style: TextStyle(color: Colors.grey)),
-                  const SizedBox(height: 30),
-
-                  _buildTextField(_modelController, "Car Model", "e.g. Toyota Corolla", Icons.car_rental),
-                  _buildTextField(_plateController, "License Plate", "e.g. BA 1 PA 1234", Icons.numbers),
-                  _buildTextField(_colorController, "Car Color", "e.g. White", Icons.color_lens),
-
-                  const SizedBox(height: 20),
-                  const Text("Fuel Type", style: TextStyle(fontWeight: FontWeight.bold)),
-                  DropdownButton<String>(
-                    isExpanded: true,
-                    value: _fuelType,
-                    items: ['Petrol', 'Diesel', 'Electric', 'Hybrid'].map((String value) {
-                      return DropdownMenuItem<String>(value: value, child: Text(value));
-                    }).toList(),
-                    onChanged: (newValue) {
-                      setState(() => _fuelType = newValue!);
-                    },
-                  ),
-
-                  const SizedBox(height: 40),
-
-                  SizedBox(
-                    width: double.infinity,
-                    height: 55,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      onPressed: _isLoading ? null : () => _saveCarDetails(driverId!),
-                      child: _isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text("SAVE VEHICLE DETAILS", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  // --- HELPER: TEXT FIELD UI ---
-  Widget _buildTextField(TextEditingController controller, String label, String hint, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          hintText: hint,
-          prefixIcon: Icon(icon),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-        validator: (value) => value!.isEmpty ? "Required field" : null,
-      ),
-    );
-  }
-
-  // --- LOGIC: SAVE TO FIRESTORE ---
-  Future<void> _saveCarDetails(String driverId) async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-      try {
-        await FirebaseFirestore.instance.collection('drivers').doc(driverId).set({
-          'carModel': _modelController.text,
-          'plateNumber': _plateController.text,
-          'carColor': _colorController.text,
-          'fuelType': _fuelType,
-          'updatedAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true)); // Use merge to keep other profile data safe
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Vehicle details updated successfully!"), backgroundColor: Colors.green),
-          );
-        }
-      } catch (e) {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
-      } finally {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-}
-
- */
