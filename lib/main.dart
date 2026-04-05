@@ -83,8 +83,7 @@ class RoleWrapper extends StatelessWidget {
 
         // 3. Handle "no data" or "document doesn't exist" state
         if (!snapshot.hasData || !snapshot.data!.exists) {
-          // This can happen if user record was not created properly.
-          // It's good to sign them out and let them try again.
+          // This can happen if user record was not created properly
           context.read<AuthProviderMethod>().signOut();
           return const Scaffold(
             body: Center(

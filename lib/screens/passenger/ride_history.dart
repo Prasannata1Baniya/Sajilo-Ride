@@ -27,7 +27,7 @@ class RideHistoryContent extends StatelessWidget {
             .collection('bookings')
             .where('passengerId', isEqualTo: userId)
             .where('status', whereIn: ['completed', 'cancelled']) // Only show finished rides
-            .orderBy('timestamp', descending: true) // Newest first
+            .orderBy('timestamp', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {

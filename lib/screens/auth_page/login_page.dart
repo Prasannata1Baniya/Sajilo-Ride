@@ -45,15 +45,12 @@ class _LoginPageState extends State<LoginPage> {
     if (!mounted) return;
 
     if (message == 'Success') {
-      // 2. Fetch the role from Firestore
       String roleString = await authProvider.getUserRole(authProvider.user!.uid);
 
-      // 3. Convert to Enum
       UserRole roleEnum = (roleString == 'Driver') ? UserRole.driver : UserRole.passenger;
 
       if (!mounted) return;
 
-      // 4. Navigate to NavigationShell with the correct role
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) => NavigationShell(userRole: roleEnum),
@@ -66,6 +63,7 @@ class _LoginPageState extends State<LoginPage> {
       });
     }
   }
+  bool _isPasswordObscured = true;
 
   @override
   Widget build(BuildContext context) {
@@ -126,18 +124,27 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Password Field
                         TextFormField(
                           controller: _passwordController,
                           style: const TextStyle(color: Colors.white),
-                          obscureText: true,
-                          decoration: inputDecorate.buildInputDecoration("Password").copyWith(
-                            labelStyle: const TextStyle(color: Colors.white70),
+                          obscureText: _isPasswordObscured,decoration: inputDecorate.buildInputDecoration("Password").copyWith(
+                          labelStyle: const TextStyle(color: Colors.white70),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _isPasswordObscured ? Icons.visibility_off : Icons.visibility,
+                              color: Colors.white70,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _isPasswordObscured = !_isPasswordObscured;
+                              });
+                            },
                           ),
-                          validator: (value) => (value == null || value.length < 6) ? 'Password must be at least 6 characters' : null,
+                        ),
+                          validator: (value) => (value == null || value.length < 6) ?
+                          'Password must be at least 6 characters' : null,
                         ),
 
-                        // Error Text
                         if (error != null)
                           Padding(
                             padding: const EdgeInsets.only(top: 20),
