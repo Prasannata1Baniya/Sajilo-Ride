@@ -168,7 +168,10 @@ class _RegisterPageState extends State<RegisterPage> {
                                   keyboardType: TextInputType.emailAddress,
                                   style: const TextStyle(color: Colors.white70,
                                       fontWeight: FontWeight.bold),
-                                  decoration: inputDecorate.buildInputDecoration("Email"),
+                                  decoration: inputDecorate.buildInputDecoration("Email").copyWith(
+                                    labelStyle: const TextStyle(color: Colors.white70),
+                                    suffixIcon: Icon(Icons.email, color: Colors.white70,),
+                                  ),
                                   validator: (value) => (value == null || !value.contains('@')) ? "Invalid email" : null,
                                 ),
                                 const SizedBox(height: 16),

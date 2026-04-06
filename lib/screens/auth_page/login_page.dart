@@ -5,8 +5,6 @@ import 'package:sajilo_ride/auth/auth_provider.dart';
 import 'package:sajilo_ride/screens/auth_page/register_page.dart';
 import 'package:sajilo_ride/utils/input_decoration.dart';
 import 'package:sajilo_ride/utils/text_styles.dart';
-import 'package:sajilo_ride/navbar/navbar_page.dart';
-
 import '../../navbar/navbar_config.dart';
 import '../../widgets/app_shell.dart';
 
@@ -110,7 +108,6 @@ class _LoginPageState extends State<LoginPage> {
         // 2. Fetch the role string from Firestore
         String roleString = await authProvider.getUserRole(authProvider.user!.uid);
 
-        // 3. LOG THE ROLE TO THE CONSOLE (For your debugging)
         debugPrint("Logged in as: $roleString");
 
         // 4. CRITICAL FIX: Trim and lowercase the comparison
@@ -162,7 +159,7 @@ class _LoginPageState extends State<LoginPage> {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(25),
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
                 child: Container(
                   padding: const EdgeInsets.all(32.0),
                   decoration: BoxDecoration(
@@ -188,8 +185,10 @@ class _LoginPageState extends State<LoginPage> {
                           keyboardType: TextInputType.emailAddress,
                           decoration: inputDecorate.buildInputDecoration("Email").copyWith(
                             labelStyle: const TextStyle(color: Colors.white70),
+                            suffixIcon: Icon(Icons.email, color: Colors.white70,),
                           ),
-                          validator: (value) => (value == null || !value.contains('@')) ? 'Enter a valid email' : null,
+                          validator: (value) => (value == null || !value.contains('@'))
+                              ? 'Enter a valid email' : null,
                         ),
                         const SizedBox(height: 20),
 

@@ -19,11 +19,11 @@ class InputDecorate {
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.redAccent, width: 2),
+        borderSide: BorderSide(color: Colors.red, width: 2),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.redAccent, width: 2),
+        borderSide: const BorderSide(color: Colors.red, width: 2),
       ),
     );
 
