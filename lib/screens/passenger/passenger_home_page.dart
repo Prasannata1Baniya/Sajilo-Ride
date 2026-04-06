@@ -154,7 +154,8 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
           callbackUrl: '',
         ),
         onPaymentSuccess: (data) => _confirmBooking(paymentStatus: "paid", method: "eSewa"),
-        onPaymentFailure: (data) => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Payment Failed"))),
+        onPaymentFailure: (data) => ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text("Payment Failed"))),
         onPaymentCancellation: (data) => debugPrint("Cancelled"),
       );
     } catch (e) { debugPrint("eSewa Error: $e"); }
@@ -330,7 +331,21 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
           const SizedBox(height: 20),
           _locationTile(Icons.circle, Colors.green, "Pickup", _pickupAddress, isSelectingPickup, () => setState(() => isSelectingPickup = true)),
           const SizedBox(height: 12),
-          _locationTile(Icons.location_on, Colors.red, "Drop-off", _dropoffAddress, !isSelectingPickup, () => setState(() => isSelectingPickup = false)),
+
+          if(!isSelectingPickup)
+          TextFormField(
+            onTap:  () => setState(() => isSelectingPickup = false),
+
+            decoration: InputDecoration(
+            suffixIcon: Icon(Icons.location_on,color: Colors.red,),
+              labelText: "Drop-off",
+              label:  Expanded(child: Text(_dropoffAddress, overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+              ),),
+          ),
+          ),
+          //_locationTile(Icons.location_on, Colors.red, "Drop-off",
+            //_dropoffAddress, !isSelectingPickup, () => setState(() => isSelectingPickup = false)),
           const Divider(height: 40),
           Expanded(child: _buildRideSelector()),
           if (selectedCar != null) _buildFareFooter(),
@@ -354,7 +369,9 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
           children: [
             Icon(icon, color: color, size: 18),
             const SizedBox(width: 15),
-            Expanded(child: Text(address, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, fontWeight: active ? FontWeight.bold : FontWeight.normal))),
+            Expanded(child: Text(address, overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 13, fontWeight: active ? FontWeight.bold : FontWeight.normal),
+            ),),
           ],
         ),
       ),
