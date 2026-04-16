@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
@@ -128,7 +127,7 @@ class _LoginPageState extends State<LoginPage> {
                     child: Container(
                       padding: const EdgeInsets.all(32.0),
                       decoration: BoxDecoration(
-                        color: Colors.orange.shade50,
+                        color: Colors.white.withValues(alpha: 0.8),
                         borderRadius: BorderRadius.circular(30),
                         border: Border.all(
                           width: 1,

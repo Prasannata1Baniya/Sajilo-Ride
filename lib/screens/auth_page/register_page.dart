@@ -5,9 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
 import 'package:sajilo_ride/utils/input_decoration.dart';
 import 'package:sajilo_ride/utils/text_styles.dart';
-import 'package:image_picker/image_picker.dart';
+import 'driver_verification_page.dart';
 import 'login_page.dart';
-import 'dart:ui';
 import 'package:flutter/foundation.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -49,7 +48,7 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
 
-  Future<void> _pickImage() async {
+  /*Future<void> _pickImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(
         source: ImageSource.gallery,
@@ -63,7 +62,7 @@ class _RegisterPageState extends State<RegisterPage> {
         error = null;
       });
     }
-  }
+  }*/
 
   // --- LOGIC: HANDLE REGISTRATION ---
   Future<void> _handleRegister() async {
@@ -113,6 +112,28 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
+  void _onNextPressed() {
+    if (!_formKey.currentState!.validate()) return;
+
+    if (selectedRole == 'driver') {
+      // Navigate to the License Upload Page
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DriverVerificationPage(
+            name: _nameController.text,
+            email: _emailController.text,
+            password: _passwordController.text,
+            phone: _numController.text,
+          ),
+        ),
+      );
+    } else {
+      // If passenger, just register normally
+      _handleRegister();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -159,7 +180,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         width: MediaQuery.of(context).size.width * 0.85,
                         padding: const EdgeInsets.all(24.0),
                         decoration: BoxDecoration(
-                          color: Colors.orange.shade50,
+                          color: Colors.white.withValues(alpha: 0.8),
                           borderRadius: BorderRadius.circular(25),
                           border: Border.all(width: 1.5, color: Colors.white.withValues(alpha:0.2)),
                         ),
@@ -268,7 +289,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                 validator: (value) => value == null ? "Required" : null,
                               ),
 
-                              // --- DRIVER LICENSE UI ---
+
+                             /* // --- DRIVER LICENSE UI ---
                               if (selectedRole == 'driver') ...[
                                 const SizedBox(height: 20),
                                 const Align(
@@ -306,7 +328,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                     ),
                                   ),
                                 ),
-                              ],
+                              ],*/
+
 
                               if (error != null)
                                 Padding(
@@ -324,10 +347,26 @@ class _RegisterPageState extends State<RegisterPage> {
                                     backgroundColor: Colors.orangeAccent,
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                   ),
-                                  onPressed: _isLoading ? null : _handleRegister,
+                                  onPressed: _isLoading ? null : _onNextPressed,
+                                  /*child: _isLoading
+                                      ? const SizedBox(height: 20, width: 20,
+                                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                      : const Text("Register", style: TextStyle(color: Colors.white,
+                                      fontSize: 16, fontWeight: FontWeight.bold)),*/
                                   child: _isLoading
-                                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                      : const Text("Register", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                                      ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                                  )
+                                      : Text(
+                                    selectedRole == 'driver' ? "Continue" : "Register",
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold
+                                    ),
+                                  ),
                                 ),
                               ),
 
