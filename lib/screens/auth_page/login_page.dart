@@ -83,11 +83,10 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
       body: Stack(
         children: [
           // 1. BACKGROUND IMAGE
-          Positioned.fill(
+         /* Positioned.fill(
             child: Image.asset(
               "assets/images/car_background.png",
               fit: BoxFit.cover,
@@ -103,6 +102,20 @@ class _LoginPageState extends State<LoginPage> {
                   colors: [
                     Colors.black.withValues(alpha: 0.5),
                     Colors.black.withValues(alpha: 0.9),
+                  ],
+                ),
+              ),
+            ),
+          ),*/
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF1A1A1A), // Deep Charcoal
+                    Color(0xFF000000), // Pure Black
                   ],
                 ),
               ),
@@ -127,12 +140,20 @@ class _LoginPageState extends State<LoginPage> {
                     child: Container(
                       padding: const EdgeInsets.all(32.0),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.8),
+                        //color: Colors.white.withValues(alpha: 0.8),
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(30),
                         border: Border.all(
                           width: 1,
                           color: Colors.white.withValues(alpha: 0.15),
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.orangeAccent.withValues(alpha: 0.1),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
                       ),
                       child: Form(
                         key: _formKey,

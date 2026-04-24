@@ -8,13 +8,14 @@ class InputDecorate {  InputDecoration buildInputDecoration(String label, {Widge
     floatingLabelStyle: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold),
     filled: true,
     //fillColor: Colors.grey[200],
-    //fillColor: Colors.white.withValues(alpha: 0.7),
-    fillColor: Colors.white,
-    contentPadding: const EdgeInsets.symmetric(vertical: 18.0, horizontal: 16.0),
+    fillColor: Colors.grey.withValues(alpha: 0.3),
+    //fillColor: Colors.white,
+    contentPadding: const EdgeInsets.symmetric(vertical: 18.0,
+        horizontal: 16.0),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(15),
       //borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-      borderSide: BorderSide(color: Colors.black),
+      borderSide: BorderSide(color: Colors.white),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(15),

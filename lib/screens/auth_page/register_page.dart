@@ -139,7 +139,8 @@ class _RegisterPageState extends State<RegisterPage> {
     return Scaffold(
       body: Stack(
         children: [
-          Positioned.fill(
+
+         /* Positioned.fill(
             child: Image.asset(
               "assets/images/car_background.png",
               fit: BoxFit.cover,
@@ -159,6 +160,21 @@ class _RegisterPageState extends State<RegisterPage> {
                       ],
                   ),
                  ),
+            ),
+          ),*/
+
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF1A1A1A), // Deep Charcoal
+                    Color(0xFF000000), // Pure Black
+                  ],
+                ),
+              ),
             ),
           ),
 
@@ -180,7 +196,8 @@ class _RegisterPageState extends State<RegisterPage> {
                         width: MediaQuery.of(context).size.width * 0.85,
                         padding: const EdgeInsets.all(24.0),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.8),
+                          //color: Colors.white.withValues(alpha: 0.8),
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(25),
                           border: Border.all(width: 1.5, color: Colors.white.withValues(alpha:0.2)),
                         ),
@@ -197,8 +214,10 @@ class _RegisterPageState extends State<RegisterPage> {
                                 controller: _nameController,
                                 style: const TextStyle(color: Colors.black,
                                     fontWeight: FontWeight.bold),
-                                decoration: inputDecorate.buildInputDecoration("Full Name",
-                                suffixIcon: Icon(Icons.person,color: Colors.orange,)),
+                                decoration: inputDecorate.buildInputDecoration("Full Name").copyWith(
+                                  labelStyle: const TextStyle(color: Colors.black),
+                                    suffixIcon: Icon(Icons.person,color: Colors.orange,)
+                                ),
                                 validator: (value) => value == null || value.isEmpty ? "Required" : null,
                               ),
                               const SizedBox(height: 16),
