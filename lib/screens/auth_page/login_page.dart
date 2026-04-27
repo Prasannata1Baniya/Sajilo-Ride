@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
@@ -86,7 +88,7 @@ class _LoginPageState extends State<LoginPage> {
       body: Stack(
         children: [
           // 1. BACKGROUND IMAGE
-         /* Positioned.fill(
+         Positioned.fill(
             child: Image.asset(
               "assets/images/car_background.png",
               fit: BoxFit.cover,
@@ -106,8 +108,9 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
             ),
-          ),*/
-          Positioned.fill(
+          ),
+
+          /*Positioned.fill(
             child: Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
@@ -117,10 +120,8 @@ class _LoginPageState extends State<LoginPage> {
                     Color(0xFF1A1A1A), // Deep Charcoal
                     Color(0xFF000000), // Pure Black
                   ],
-                ),
-              ),
-            ),
-          ),
+                ),),),),
+                */
 
           Center(
             child: SingleChildScrollView(
@@ -137,166 +138,171 @@ class _LoginPageState extends State<LoginPage> {
 
                   ConstrainedBox(
                     constraints: BoxConstraints(maxWidth: 450),
-                    child: Container(
-                      padding: const EdgeInsets.all(32.0),
-                      decoration: BoxDecoration(
-                        //color: Colors.white.withValues(alpha: 0.8),
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(30),
-                        border: Border.all(
-                          width: 1,
-                          color: Colors.white.withValues(alpha: 0.15),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.orangeAccent.withValues(alpha: 0.1),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
+                    child: ClipRRect(
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 200,sigmaY: 200),
+                        child: Container(
+                          padding: const EdgeInsets.all(32.0),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            //color: Colors.white,
+                            borderRadius: BorderRadius.circular(30),
+                            border: Border.all(
+                              width: 1,
+                              color: Colors.white.withValues(alpha: 0.15),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.orangeAccent.withValues(alpha: 0.1),
+                                blurRadius: 20,
+                                offset: const Offset(0, 10),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Image.asset("assets/images/SajiloRide_logo.png",
-                                height: 80),
-                            const SizedBox(height: 40),
+                          child: Form(
+                            key: _formKey,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Image.asset("assets/images/SajiloRide_logo.png",
+                                    height: 80),
+                                const SizedBox(height: 40),
 
-                            // Email
-                            TextFormField(
-                              controller: _emailController,
-                              style: const TextStyle(color: Colors.black),
-                              keyboardType: TextInputType.emailAddress,
-                              decoration: inputDecorate
-                                  .buildInputDecoration(
-                                "Email",
-                                suffixIcon: const Icon(Icons.email_outlined,
-                                    color: Colors.orange, size: 20),
-                              ),
-                              validator: (value) =>
-                              (value == null || !value.contains('@'))
-                                  ? 'Invalid email'
-                                  : null,
-                            ),
-                            const SizedBox(height: 20),
-
-                            // Password
-                            TextFormField(
-                              controller: _passwordController,
-                              style: const TextStyle(color: Colors.black),
-                              obscureText: _isPasswordObscured,
-                              decoration: inputDecorate
-                                  .buildInputDecoration(
-                                "Password",
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _isPasswordObscured ? Icons
-                                        .visibility_off_outlined : Icons
-                                        .visibility_outlined,
-                                    color: Colors.orange, size: 20,
+                                // Email
+                                TextFormField(
+                                  controller: _emailController,
+                                  style: const TextStyle(color: Colors.black),
+                                  keyboardType: TextInputType.emailAddress,
+                                  decoration: inputDecorate
+                                      .buildInputDecoration(
+                                    "Email",
+                                    suffixIcon: const Icon(Icons.email_outlined,
+                                        color: Colors.orange, size: 20),
                                   ),
-                                  onPressed: () =>
-                                      setState(() =>
-                                      _isPasswordObscured =
-                                  !_isPasswordObscured),
+                                  validator: (value) =>
+                                  (value == null || !value.contains('@'))
+                                      ? 'Invalid email'
+                                      : null,
                                 ),
-                              ),
-                              validator: (value) =>
-                              (value == null || value.length < 6)
-                                  ? 'Short password'
-                                  : null,
-                            ),
+                                const SizedBox(height: 20),
 
-                            if (error != null)
-                              AnimatedContainer(
-                                duration: const Duration(milliseconds: 300),
-                                margin: const EdgeInsets.only(top: 20),
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: Colors.red.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: Colors.red.withValues(alpha: 0.35),
-                                    width: 1.2,
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.info_outline,
-                                      color: Colors.red,
-                                      size: 18,
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Text(
-                                        error!,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w500,
-                                        ),
+                                // Password
+                                TextFormField(
+                                  controller: _passwordController,
+                                  style: const TextStyle(color: Colors.black),
+                                  obscureText: _isPasswordObscured,
+                                  decoration: inputDecorate
+                                      .buildInputDecoration(
+                                    "Password",
+                                    suffixIcon: IconButton(
+                                      icon: Icon(
+                                        _isPasswordObscured ? Icons
+                                            .visibility_off_outlined : Icons
+                                            .visibility_outlined,
+                                        color: Colors.orange, size: 20,
                                       ),
+                                      onPressed: () =>
+                                          setState(() =>
+                                          _isPasswordObscured =
+                                      !_isPasswordObscured),
+                                    ),
+                                  ),
+                                  validator: (value) =>
+                                  (value == null || value.length < 6)
+                                      ? 'Short password'
+                                      : null,
+                                ),
+
+                                if (error != null)
+                                  AnimatedContainer(
+                                    duration: const Duration(milliseconds: 300),
+                                    margin: const EdgeInsets.only(top: 20),
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: Colors.red.withValues(alpha: 0.35),
+                                        width: 1.2,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.info_outline,
+                                          color: Colors.red,
+                                          size: 18,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Text(
+                                            error!,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+
+                                const SizedBox(height: 35),
+
+                                // Login Button
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 55,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                              15)),
+                                      //backgroundColor: Colors.orangeAccent,
+                                      // shadowColor: Colors.orangeAccent.withValues(alpha: 0.4),
+                                      backgroundColor: const Color(0xFFFF9F43),
+                                      shadowColor: const Color(0xFFFF9F43).withValues(alpha: 0.3),
+                                      foregroundColor: Colors.white,
+                                      elevation: 8,
+                                    ),
+                                    onPressed: isLoading ? null : _handleLogin,
+                                    child: isLoading
+                                        ? const SizedBox(height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2))
+                                        : const Text("LOGIN", style: TextStyle(
+                                        letterSpacing: 1.5,
+                                        fontWeight: FontWeight.bold)),
+                                  ),
+                                ),
+
+                                const SizedBox(height: 25),
+
+                                // Register Link
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Text("New here? ", style: TextStyle(
+                                        color: Colors.black)),
+                                    GestureDetector(
+                                      onTap: () =>
+                                          Navigator.push(context,
+                                          MaterialPageRoute(builder: (
+                                              _) => const RegisterPage())),
+                                      child: const Text("Create Account",
+                                          style: TextStyle(
+                                              color: Colors.orangeAccent,
+                                              fontWeight: FontWeight.bold,
+                                              )),
                                     ),
                                   ],
                                 ),
-                              ),
-
-                            const SizedBox(height: 35),
-
-                            // Login Button
-                            SizedBox(
-                              width: double.infinity,
-                              height: 55,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                          15)),
-                                  //backgroundColor: Colors.orangeAccent,
-                                  // shadowColor: Colors.orangeAccent.withValues(alpha: 0.4),
-                                  backgroundColor: const Color(0xFFFF9F43),
-                                  shadowColor: const Color(0xFFFF9F43).withValues(alpha: 0.3),
-                                  foregroundColor: Colors.white,
-                                  elevation: 8,
-                                ),
-                                onPressed: isLoading ? null : _handleLogin,
-                                child: isLoading
-                                    ? const SizedBox(height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2))
-                                    : const Text("LOGIN", style: TextStyle(
-                                    letterSpacing: 1.5,
-                                    fontWeight: FontWeight.bold)),
-                              ),
-                            ),
-
-                            const SizedBox(height: 25),
-
-                            // Register Link
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Text("New here? ", style: TextStyle(
-                                    color: Colors.black)),
-                                GestureDetector(
-                                  onTap: () =>
-                                      Navigator.push(context,
-                                      MaterialPageRoute(builder: (
-                                          _) => const RegisterPage())),
-                                  child: const Text("Create Account",
-                                      style: TextStyle(
-                                          color: Colors.orangeAccent,
-                                          fontWeight: FontWeight.bold,
-                                          )),
-                                ),
                               ],
                             ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
