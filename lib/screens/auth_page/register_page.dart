@@ -1,7 +1,5 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:intl_phone_field/country_picker_dialog.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
@@ -27,6 +25,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
   FocusNode focusNode = FocusNode();
   String _phoneNumber="";
+  int currentStep = 1;
+
 
   //final List<String> roles = ['Passenger', 'Driver'];
   final List<String> roles = ['passenger', 'driver'];
@@ -189,7 +189,143 @@ class _RegisterPageState extends State<RegisterPage> {
                             borderRadius: BorderRadius.circular(25),
                             border: Border.all(width: 1.5, color: Colors.white.withValues(alpha:0.2)),
                           ),
+
                           child: Form(
+                            key: _formKey,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Image.asset("assets/images/SajiloRide_logo.png", height: 70),
+                                const SizedBox(height: 10),
+
+                                // Step Indicator (Helps user know how far they are)
+                                Text("Step $currentStep of 3", style: const TextStyle(color: Colors.orange, fontSize: 12, fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 15),
+
+                                // --- STEP 1: IDENTITY ---
+                                if (currentStep == 1) ...[
+                                  TextFormField(
+                                    controller: _nameController,
+                                    style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                                    decoration: inputDecorate.buildInputDecoration("Full Name").copyWith(
+                                      suffixIcon: const Icon(Icons.person, color: Colors.orange),
+                                    ),
+                                    validator: (value) => value == null || value.isEmpty ? "Required" : null,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  TextFormField(
+                                    controller: _emailController,
+                                    keyboardType: TextInputType.emailAddress,
+                                    style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                                    decoration: inputDecorate.buildInputDecoration("Email").copyWith(
+                                      suffixIcon: const Icon(Icons.email, color: Colors.orange),
+                                    ),
+                                    validator: (value) => (value == null || !value.contains('@')) ? "Invalid email" : null,
+                                  ),
+                                ],
+
+                                // --- STEP 2: SECURITY & PHONE ---
+                                if (currentStep == 2) ...[
+                                  IntlPhoneField(
+                                    controller: _numController,
+                                    style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                                    decoration: inputDecorate.buildInputDecoration("Phone Number"),
+                                    initialCountryCode: 'NP',
+                                    onChanged: (phone) => _phoneNumber = phone.completeNumber,
+                                    validator: (value) => (value == null || value.number.length < 10) ? 'Enter 10 digit number' : null,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  TextFormField(
+                                    controller: _passwordController,
+                                    obscureText: _isPasswordObscured,
+                                    style: const TextStyle(color: Colors.black),
+                                    decoration: inputDecorate.buildInputDecoration("Password").copyWith(
+                                      suffixIcon: IconButton(
+                                        icon: Icon(_isPasswordObscured ? Icons.visibility_off : Icons.visibility, color: Colors.orange),
+                                        onPressed: () => setState(() => _isPasswordObscured = !_isPasswordObscured),
+                                      ),
+                                    ),
+                                    validator: (value) => (value == null || value.length < 6) ? 'Short password' : null,
+                                  ),
+                                ],
+
+                                // --- STEP 3: ROLE SELECTION ---
+                                if (currentStep == 3) ...[
+                                  const Text("Choose your role", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                                  const SizedBox(height: 15),
+                                  DropdownButtonFormField<String>(
+                                    initialValue: selectedRole,
+                                    decoration: inputDecorate.buildInputDecoration("Select Role"),
+                                    dropdownColor: Colors.white,
+                                    style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                                    items: roles.map((role) => DropdownMenuItem(value: role, child: Text(role.toUpperCase()))).toList(),
+                                    onChanged: (value) => setState(() {
+                                      selectedRole = value;
+                                      error = null;
+                                    }),
+                                    validator: (value) => value == null ? "Please select a role" : null,
+                                  ),
+                                ],
+
+                                if (error != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 15),
+                                    child: Text(error!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.redAccent, fontSize: 12)),
+                                  ),
+
+                                const SizedBox(height: 25),
+
+                                // --- NAVIGATION BUTTONS ---
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 50,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.orangeAccent,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    ),
+                                    onPressed: _isLoading ? null : () {
+                                      if (_formKey.currentState!.validate()) {
+                                        if (currentStep < 3) {
+                                          setState(() => currentStep++);
+                                        } else {
+                                          _onNextPressed();
+                                        }
+                                      }
+                                    },
+                                    child: _isLoading
+                                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                        : Text(
+                                      currentStep < 3 ? "NEXT" : (selectedRole == 'driver' ? "CONTINUE" : "REGISTER"),
+                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+
+                                if (currentStep > 1 && !_isLoading)
+                                  TextButton(
+                                    onPressed: () => setState(() => currentStep--),
+                                    child: const Text("Back", style: TextStyle(color: Colors.black54)),
+                                  ),
+
+                                const SizedBox(height: 10),
+                                // Only show "Login Now" on the first step to keep it clean
+                                if (currentStep == 1)
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Text("Already have an account?", style: TextStyle(color: Colors.black)),
+                                      TextButton(
+                                        onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginPage())),
+                                        child: const Text("Login Now", style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
+                                      ),
+                                    ],
+                                  ),
+                              ],
+                            ),
+                          ),
+
+                          /*child: Form(
                             key: _formKey,
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
@@ -296,49 +432,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                   }),
                                   validator: (value) => value == null ? "Required" : null,
                                 ),
-                        
-                        
-                               /* // --- DRIVER LICENSE UI ---
-                                if (selectedRole == 'driver') ...[
-                                  const SizedBox(height: 20),
-                                  const Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(" License Document", style: TextStyle(color: Colors.white70, fontSize: 13)),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  GestureDetector(
-                                    onTap: _pickImage,
-                                    child: Container(
-                                      height: 110,
-                                      width: double.infinity,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withValues(alpha: 0.05),
-                                        borderRadius: BorderRadius.circular(15),
-                                        border: Border.all(color: Colors.white24, width: 1.5),
-                                      ),
-                                      child: _imageData == null
-                                          ? const Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Icon(Icons.add_a_photo_outlined, color: Colors.orangeAccent, size: 30),
-                                          SizedBox(height: 5),
-                                          Text("Tap to upload License",
-                                              style: TextStyle(color: Colors.white60, fontSize: 11)),
-                                        ],
-                                      )
-                                          : ClipRRect(
-                                        borderRadius: BorderRadius.circular(15),
-                                        child: Image.memory(
-                                          _imageData!,
-                                          fit: BoxFit.cover,
-                                          width: double.infinity,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],*/
-                        
-                        
+
                                 if (error != null)
                                   Padding(
                                     padding: const EdgeInsets.only(top: 15),
@@ -396,6 +490,8 @@ class _RegisterPageState extends State<RegisterPage> {
                               ],
                             ),
                           ),
+
+                          */
                         ),
                       ),
                     ),
