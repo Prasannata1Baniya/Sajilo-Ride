@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
 import '../auth_page/login_page.dart';
+import 'car_management.dart';
 
 class DriverProfileContent extends StatelessWidget {
   const DriverProfileContent({super.key});
@@ -56,6 +57,20 @@ class DriverProfileContent extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 15),
               children: [
+
+                _buildProfileOption(
+                  icon: Icons.directions_car,
+                  title: "My Vehicle Details",
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>  CarManagementContent(),
+                      ),
+                    );
+                  },
+                ),
+
                 _buildProfileOption(
                   icon: Icons.history,
                   title: "Ride History",

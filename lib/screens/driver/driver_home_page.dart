@@ -15,6 +15,11 @@ class DriverHomeContent extends StatelessWidget {
     final authProvider = Provider.of<AuthProviderMethod>(context);
     final driverId = authProvider.user?.uid;
 
+    // Trigger token save in the background if driverId is found
+    if (driverId != null) {
+      authProvider.saveDeviceToken(driverId);
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("New Ride Requests"),
