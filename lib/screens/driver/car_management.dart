@@ -227,7 +227,7 @@ class _CarManagementContentState extends State<CarManagementContent> {
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                  decoration: BoxDecoration(color: Colors.orange.withOpacity(0.15), borderRadius: BorderRadius.circular(20)),
+                  decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(20)),
                   child: Text(_fuelType, style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold)),
                 )
               ],
@@ -293,7 +293,7 @@ class _CarManagementContentState extends State<CarManagementContent> {
                   height: 180, width: double.infinity,
                   decoration: BoxDecoration(
                     color: Colors.grey[100], borderRadius: BorderRadius.circular(15),
-                    border: Border.all(color: Colors.orange.withOpacity(0.5)),
+                    border: Border.all(color: Colors.orange.withValues(alpha: 0.5)),
                     image: _webImage != null
                         ? DecorationImage(image: MemoryImage(_webImage!), fit: BoxFit.cover)
                         : (_mobileImage != null
@@ -322,7 +322,7 @@ class _CarManagementContentState extends State<CarManagementContent> {
 
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: _fuelType,
+                initialValue: _fuelType,
                 items: ['Petrol', 'Diesel', 'Electric', 'Hybrid']
                     .map((v) => DropdownMenuItem(value: v, child: Text(v))).toList(),
                 onChanged: (val) => setState(() => _fuelType = val!),
