@@ -76,7 +76,7 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
     }
   }
 
-  Future<void> _completeRegistration() async {
+  /*Future<void> _completeRegistration() async {
     if (_licenseFile == null || _selfieFile == null) {
       _showSnackBar("Please complete both License and Face verification", isError: true);
       return;
@@ -122,6 +122,72 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
       faceEmbeddings: selfieEmbeddings,
     );
 
+    if (!mounted) return;
+
+    if (message == 'Success') {
+      _showSnackBar("Account created! Welcome onboard.", isError: false);
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+            (route) => false,
+      );
+    } else {
+      setState(() => _isLoading = false);
+      _showSnackBar(message, isError: true);
+    }
+  }*/
+
+  Future<void> _completeRegistration() async {
+    if (_licenseFile == null || _selfieFile == null) {
+      _showSnackBar("Please complete both License and Face verification", isError: true);
+      return;
+    }
+
+    // FIX: Read the provider here, completely BEFORE the first async gap
+    final authProvider = Provider.of<AuthProviderMethod>(context, listen: false);
+
+    setState(() => _isLoading = true);
+    _showSnackBar("Processing biometric validation...", isError: false);
+
+    // --- Async Gap 1 ---
+    List<double>? licenseEmbeddings = await _extractEmbeddings(_licenseFile!);
+    if (licenseEmbeddings == null) {
+      _showSnackBar("Could not read a clear face from your Driving License.", isError: true);
+      setState(() => _isLoading = false);
+      return;
+    }
+
+    // --- Async Gap 2 ---
+    List<double>? selfieEmbeddings = await _extractEmbeddings(_selfieFile!);
+    if (selfieEmbeddings == null) {
+      _showSnackBar("Could not read a clear face from your Selfie live photo.", isError: true);
+      setState(() => _isLoading = false);
+      return;
+    }
+
+    double distance = _calculateDistance(licenseEmbeddings, selfieEmbeddings);
+    debugPrint("DEBUG: Calculated face biometric distance -> $distance");
+
+    if (distance > 0.6) {
+      _showSnackBar("Face Verification Failed! The selfie face does not match your driving license document.", isError: true);
+      setState(() => _isLoading = false);
+      return;
+    }
+
+    _showSnackBar("Biometrics matched! finalising registration...", isError: false);
+
+    // --- Async Gap 3 ---
+    // Safe to use here now because we are referencing a local variable instead of searching the context tree late
+    final message = await authProvider.signUpWithEmailAndPassword(
+      widget.name,
+      widget.email,
+      widget.password,
+      widget.phone,
+      'driver',
+      licenseFile: _licenseFile,
+      faceEmbeddings: selfieEmbeddings,
+    );
+
+    // Guard safety check for the navigation context lookup below
     if (!mounted) return;
 
     if (message == 'Success') {

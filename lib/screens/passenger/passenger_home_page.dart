@@ -197,7 +197,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
         "type": "service_account",
         "project_id": dotenv.get("FCM_PROJECT_ID"),
         "private_key_id": dotenv.get("FCM_PRIVATE_KEY_ID"),
-        "private_key": dotenv.get("FCM_PRIVATE_KEY").replaceAll(r'\n', '\n'), // Formats newlines perfectly
+        "private_key": dotenv.get("FCM_PRIVATE_KEY").replaceAll(r'\n', '\n'),
         "client_email": dotenv.get("FCM_CLIENT_EMAIL"),
       });
 
@@ -208,7 +208,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
       // 5. Send the payload to the modern HTTP v1 endpoint
       // NOTE: Change "YOUR_PROJECT_ID" in the URL string below to match your project ID!
       final response = await http.post(
-        Uri.parse('https://fcm.googleapis.com/v1/projects/YOUR_PROJECT_ID/messages:send'),
+        Uri.parse('https://fcm.googleapis.com/v1/projects/${dotenv.get("FCM_PROJECT_ID")}/messages:send'),
         headers: <String, String>{
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $accessToken',

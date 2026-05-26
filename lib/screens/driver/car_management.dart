@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io' show File;
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -77,8 +78,10 @@ class _CarManagementContentState extends State<CarManagementContent> {
   }
 
   Future<String?> _uploadToCloudinary() async {
-    const cloudName = "dvezp7njs";
-    const uploadPreset = "sajilo_preset";
+
+    final cloudName = dotenv.get("CLOUDINARY_CLOUD_NAME");
+    final uploadPreset = dotenv.get("CLOUDINARY_PRESET_NAME");
+
     final uri = Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
     var request = http.MultipartRequest('POST', uri);
     request.fields['upload_preset'] = uploadPreset;

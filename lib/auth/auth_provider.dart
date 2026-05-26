@@ -1,7 +1,12 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 
 class AuthProviderMethod extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -15,10 +20,102 @@ class AuthProviderMethod extends ChangeNotifier {
     });
   }
 
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+
+  final String _cloudinaryCloudName = dotenv.get("CLOUDINARY_CLOUD_NAME");
+  final String _cloudinaryUploadPreset = dotenv.get("CLOUDINARY_PRESET_NAME");
+
+  /// Uploads a local file directly to Cloudinary using an unsigned preset
+  Future<String?> _uploadToCloudinary(XFile file) async {
+    try {
+
+      final url = Uri.parse(
+          'https://api.cloudinary.com/v1_1/$_cloudinaryCloudName/image/upload');
+
+      // Initialize a standard Multi-Part Request matching Cloudinary's schema rules
+      var request = http.MultipartRequest('POST', url)
+        ..fields['upload_preset'] = _cloudinaryUploadPreset
+        ..files.add(await http.MultipartFile.fromPath('file', file.path));
+
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        String secureUrl = responseData['secure_url'];
+        debugPrint("DEBUG: Uploaded successfully to Cloudinary: $secureUrl");
+        return secureUrl;
+      } else {
+        debugPrint("DEBUG: Cloudinary Error Status -> ${response.statusCode}");
+        debugPrint("DEBUG: Cloudinary Error Body -> ${response.body}");
+        return null;
+      }
+    } catch (e) {
+      debugPrint("DEBUG: Exception during Cloudinary file transfer: $e");
+      return null;
+    }
+  }
+
+  /// Registers user to Firebase and handles Cloudinary + Firestore links
+  Future<String> signUpWithEmailAndPassword(String name,
+      String email,
+      String password,
+      String phone,
+      String role, {
+        XFile? licenseFile,
+        List<double>? faceEmbeddings,
+      }) async {
+    try {
+      // 1. Upload the license file to Cloudinary first (if provided)
+      String licenseUrl = "";
+      if (licenseFile != null) {
+        String? uploadedUrl = await _uploadToCloudinary(licenseFile);
+        if (uploadedUrl == null) {
+          return "Failed to upload document to media server. Registration aborted.";
+        }
+        licenseUrl = uploadedUrl;
+      }
+
+      // 2. Create the user authentication profile inside Firebase Auth
+      UserCredential userCredential = await _auth
+          .createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      String uid = userCredential.user!.uid;
+
+      // 3. Save everything to Cloud Firestore
+      await _db.collection('users').doc(uid).set({
+        'uid': uid,
+        'name': name,
+        'email': email,
+        'phone': phone,
+        'role': role,
+        'licenseUrl': licenseUrl,
+        // Saved Cloudinary link
+        'faceEmbeddings': faceEmbeddings,
+        // Array of local TFLite numbers saved cleanly
+        'createdAt': FieldValue.serverTimestamp(),
+        'isVerified': false,
+        // Pending review status
+      });
+
+      return 'Success';
+    } on FirebaseAuthException catch (e) {
+      return e.message ?? "An authentication error occurred.";
+    } catch (e) {
+      return e.toString();
+    }
+  }
+
   // --- FETCH ROLE ---
   Future<String> getUserRole(String uid) async {
     try {
-      DocumentSnapshot doc = await _firestore.collection('users').doc(uid).get();
+      DocumentSnapshot doc = await _firestore
+          .collection('users')
+          .doc(uid)
+          .get();
       if (doc.exists) {
         return doc.get('role') as String;
       }
@@ -29,7 +126,8 @@ class AuthProviderMethod extends ChangeNotifier {
   }
 
   // --- LOGIN (Now with Automatic Token Save) ---
-  Future<String?> loginWithEmailAndPassword(String email, String password) async {
+  Future<String?> loginWithEmailAndPassword(String email,
+      String password) async {
     try {
       UserCredential credential = await _auth.signInWithEmailAndPassword(
           email: email,
@@ -51,44 +149,6 @@ class AuthProviderMethod extends ChangeNotifier {
       return 'Success';
     } on FirebaseAuthException catch (e) {
       return e.message ?? 'An unknown error occurred.';
-    } catch (e) {
-      return e.toString();
-    }
-  }
-
-  // --- REGISTER ---
-  Future<String> signUpWithEmailAndPassword(
-      String name, String email, String password, String phone, String role) async {
-    try {
-      UserCredential result = await _auth.createUserWithEmailAndPassword(
-          email: email, password: password);
-      User? firebaseUser = result.user;
-
-      await firebaseUser!.updateDisplayName(name);
-
-      String dummyLicenseUrl = "";
-
-      if (role.toLowerCase() == 'driver') {
-        dummyLicenseUrl = "https://cdn-icons-png.flaticon.com/512/3524/3524752.png";
-      }
-
-      await _firestore.collection('users').doc(firebaseUser.uid).set({
-        'uid': firebaseUser.uid,
-        'name': name,
-        'email': email,
-        'phone': phone,
-        'role': role.toLowerCase(),
-        'licenseImageUrl': dummyLicenseUrl,
-        'isVerified': true,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-
-      // If they are registering directly as a driver, capture the token right away
-      if (role.toLowerCase() == 'driver') {
-        await saveDeviceToken(firebaseUser.uid);
-      }
-
-      return 'Success';
     } catch (e) {
       return e.toString();
     }
@@ -134,13 +194,55 @@ class AuthProviderMethod extends ChangeNotifier {
           debugPrint("FCM Token successfully saved for driver: $token");
         }
       } else {
-        debugPrint("User declined or has not accepted notification permissions.");
+        debugPrint(
+            "User declined or has not accepted notification permissions.");
       }
     } catch (e) {
       debugPrint("Error saving device token: $e");
     }
   }
+
+  /*
+  // --- REGISTER ---
+  Future<String> signUpWithEmailAndPassword(
+      String name, String email, String password, String phone, String role) async {
+    try {
+      UserCredential result = await _auth.createUserWithEmailAndPassword(
+          email: email, password: password);
+      User? firebaseUser = result.user;
+
+      await firebaseUser!.updateDisplayName(name);
+
+      String dummyLicenseUrl = "";
+
+      if (role.toLowerCase() == 'driver') {
+        dummyLicenseUrl = "https://cdn-icons-png.flaticon.com/512/3524/3524752.png";
+      }
+
+      await _firestore.collection('users').doc(firebaseUser.uid).set({
+        'uid': firebaseUser.uid,
+        'name': name,
+        'email': email,
+        'phone': phone,
+        'role': role.toLowerCase(),
+        'licenseImageUrl': dummyLicenseUrl,
+        'isVerified': true,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      // If they are registering directly as a driver, capture the token right away
+      if (role.toLowerCase() == 'driver') {
+        await saveDeviceToken(firebaseUser.uid);
+      }
+
+      return 'Success';
+    } catch (e) {
+      return e.toString();
+    }
+  }
+   */
 }
+
 
 
 

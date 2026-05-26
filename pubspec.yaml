@@ -58,6 +58,9 @@ dependencies:
   flutter_local_notifications: ^18.0.1
   googleapis_auth: ^2.3.1
   flutter_dotenv: ^6.0.1
+  google_mlkit_face_detection: ^0.13.2
+  tflite_flutter: ^0.12.1
+  image: ^4.8.0
 
 dev_dependencies:
   flutter_test:
