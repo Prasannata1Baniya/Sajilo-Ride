@@ -46,3 +46,8 @@ android/app/google-services.json
 lib/firebase_options.dart
 
 .env
+
+# Firebase internal configuration and deployment cache
+.firebaserc
+.firebase/
+*.cache
