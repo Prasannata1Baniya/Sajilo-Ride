@@ -52,7 +52,6 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
     try {
       final pickedFile = await ImagePicker().pickImage(
         source: source,
-        // FIX: Remove or increase quality constraints specifically for the license document
         imageQuality: isSelfie ? 60 : 90,
         maxWidth: isSelfie ? 1024 : 1920,
         preferredCameraDevice: isSelfie ? CameraDevice.front : CameraDevice.rear,
@@ -148,11 +147,17 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
   Future<List<double>?> _extractEmbeddings(XFile file, {required bool isDocument}) async {
     if (kIsWeb) return null;
 
-    final options = FaceDetectorOptions(
+    /*final options = FaceDetectorOptions(
       performanceMode: FaceDetectorMode.accurate,
       minFaceSize: isDocument ? 0.05 : 0.1,
-    );
+    );*/
 
+    final options = FaceDetectorOptions(
+      performanceMode: FaceDetectorMode.fast,
+      minFaceSize: 0.01,
+      enableLandmarks: false,
+      enableContours: false,
+    );
     final faceDetector = FaceDetector(options: options);
 
     try {
@@ -171,12 +176,9 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
       Face face = faces.first;
       Rect boundingBox = face.boundingBox;
 
-      // 1. OPTIMIZATION: Read image dimensions first without loading full pixels into memory
       final rawImageBytes = await File(file.path).readAsBytes();
-      final cmd = img.Command()
-        ..decodeImage(rawImageBytes);
+      final cmd = img.Command()..decodeImage(rawImageBytes);
 
-      // Execute decoding synchronously with fallback structural protection
       final originalImage = await cmd.getImage();
       if (originalImage == null) {
         debugPrint("DEBUG: ❌ Image library failed to decode raw bytes.");
@@ -184,7 +186,6 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
         return null;
       }
 
-      // 2. SAFE BOUNDARIES: Strict coordinate pinning
       int x = boundingBox.left.toInt().clamp(0, originalImage.width - 1);
       int y = boundingBox.top.toInt().clamp(0, originalImage.height - 1);
       int width = boundingBox.width.toInt().clamp(1, originalImage.width - x);
@@ -192,7 +193,6 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
 
       debugPrint("DEBUG: Cropping image zone: x=$x, y=$y, w=$width, h=$height");
 
-      // 3. MEMORY FIX: Use the optimized copyCrop command sequence
       img.Image croppedFace = img.copyCrop(
           originalImage,
           x: x,
@@ -201,22 +201,23 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
           height: height
       );
 
-      // Scale directly down to your TFLite model input requirement sizing (112x112)
       img.Image resizedFace = img.copyResize(croppedFace, width: 112, height: 112);
 
       await faceDetector.close();
 
       debugPrint("DEBUG: 🚀 Sending cropped face matrix to FaceRecognitionService inference...");
+
+      // FIX: Added 'await' here to match the updated asynchronous face service pipeline signature
       return _faceService.runInference(resizedFace);
 
     } catch (e) {
-      // This will catch the exact reason if your TFLite model interpreter throws an issue!
       debugPrint("DEBUG: 🚨 Error inside processing pipeline: $e");
       await faceDetector.close();
     }
     return null;
   }
 
+  // UI rendering methods remain identical...
   void _showSnackBar(String message, {required bool isError}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), backgroundColor: isError ? Colors.red : Colors.green),

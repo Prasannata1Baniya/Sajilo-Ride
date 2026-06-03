@@ -186,8 +186,8 @@ class AuthProviderMethod extends ChangeNotifier {
         String? token = await messaging.getToken();
 
         if (token != null) {
-          // 3. Save it to the driver's document using merge to prevent overwriting location configurations
-          await _firestore.collection('drivers').doc(driverId).set({
+          // 🛠️ FIXED: Changed collection from 'drivers' to 'users' to keep document data synced
+          await _firestore.collection('users').doc(driverId).set({
             'deviceToken': token,
           }, SetOptions(merge: true));
 

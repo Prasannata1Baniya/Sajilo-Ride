@@ -102,6 +102,28 @@ class _CarManagementContentState extends State<CarManagementContent> {
 
     try {
       final authProvider = Provider.of<AuthProviderMethod>(context, listen: false);
+
+      // 🛠️ 1. Check if system location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        throw 'Location services are disabled on your device. Please turn on your phone GPS.';
+      }
+
+      // 🛠️ 2. Check current permission status
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        // Request permission dynamically
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw 'Location permissions are denied. Please allow location access to register your car.';
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        throw 'Location permissions are permanently denied. Please enable them manually from your phone settings.';
+      }
+
+      // 🚀 3. Now it's safe to fetch the position!
       Position position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 10),
       );
@@ -112,6 +134,8 @@ class _CarManagementContentState extends State<CarManagementContent> {
         finalImageUrl = await _uploadToCloudinary();
       }
 
+      // 🛠️ ATTENTION: Your driver car profile details are saving into the 'drivers' collection.
+      // Make sure this matches where your app looks for vehicle info!
       await FirebaseFirestore.instance.collection('drivers').doc(driverId).set({
         'location': {'geohash': hash, 'geopoint': GeoPoint(position.latitude, position.longitude)},
         'latitude': position.latitude, 'longitude': position.longitude,
@@ -134,7 +158,7 @@ class _CarManagementContentState extends State<CarManagementContent> {
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Vehicle details updated successfully!"), backgroundColor: Colors.green)
         );
-        setState(() => _isEditingMode = false); // Flip back to view mode cleanly
+        setState(() => _isEditingMode = false);
       }
     } catch (e) {
       if (mounted) {
@@ -172,15 +196,12 @@ class _CarManagementContentState extends State<CarManagementContent> {
           return _buildReadOnlyProfileView();
         }
 
-        // --- OTHERWISE, SHOW THE CLEAN INPUT FORM ---
         return _buildEditableFormView(driverId);
       },
     );
   }
 
-  // ==========================================
-  // VIEW 1: THE CLEAN READ-ONLY PROFILE (NO TEXTFIELDS)
-  // ==========================================
+
   Widget _buildReadOnlyProfileView() {
     return Scaffold(
       appBar: AppBar(
@@ -200,7 +221,6 @@ class _CarManagementContentState extends State<CarManagementContent> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Vehicle Large Image Container
             Container(
               height: 220, width: double.infinity,
               decoration: BoxDecoration(
