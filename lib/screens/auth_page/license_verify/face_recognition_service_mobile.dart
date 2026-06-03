@@ -7,7 +7,7 @@ class FaceRecognitionService {
 
   Future<void> initModel() async {
     try {
-      _interpreter = await Interpreter.fromAsset('assets/mobilefacenet.tflite');
+      _interpreter = await Interpreter.fromAsset('assets/mobile_face_net.tflite');
       debugPrint("DEBUG: TFLite Face Recognition Model loaded successfully on Mobile.");
     } catch (e) {
       debugPrint("DEBUG: Failed to load TFLite model on Mobile: $e");
