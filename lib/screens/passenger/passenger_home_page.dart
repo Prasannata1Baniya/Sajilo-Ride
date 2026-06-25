@@ -15,6 +15,7 @@ import 'package:esewa_flutter_sdk/esewa_payment.dart';
 import 'package:sajilo_ride/core/constants/payment_config.dart';
 import 'package:sajilo_ride/data/model/car_model.dart';
 import 'package:sajilo_ride/screens/passenger/booking_confirm.dart';
+import 'package:sajilo_ride/utils/text_styles.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../navbar/navbar_config.dart';
 import '../../widgets/booking_components.dart';
@@ -357,7 +358,10 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text("Where are you going?", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          Text("Pick a pickup and drop-off point to see nearby rides", style: AppTextStyles.captionGrey),
           const SizedBox(height: 16),
+
 
           // Refactored Sub-Widget 1: Location Inputs
           LocationInputField(
