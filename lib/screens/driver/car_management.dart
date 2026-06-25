@@ -35,7 +35,6 @@ class _CarManagementContentState extends State<CarManagementContent> {
   bool _isLoading = false;
   bool _isDataLoaded = false;
 
-  // Controls whether we display the beautiful summary or the input fields
   bool _isEditingMode = false;
 
   final ImagePicker _picker = ImagePicker();
@@ -64,7 +63,6 @@ class _CarManagementContentState extends State<CarManagementContent> {
     _isDataLoaded = true;
   }
 
-  // ... Keep your _pickImage, _uploadToCloudinary exactly as they are ...
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 50);
     if (pickedFile != null) {
@@ -123,7 +121,6 @@ class _CarManagementContentState extends State<CarManagementContent> {
         throw 'Location permissions are permanently denied. Please enable them manually from your phone settings.';
       }
 
-      // 🚀 3. Now it's safe to fetch the position!
       Position position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 10),
       );
@@ -134,8 +131,6 @@ class _CarManagementContentState extends State<CarManagementContent> {
         finalImageUrl = await _uploadToCloudinary();
       }
 
-      // 🛠️ ATTENTION: Your driver car profile details are saving into the 'drivers' collection.
-      // Make sure this matches where your app looks for vehicle info!
       await FirebaseFirestore.instance.collection('drivers').doc(driverId).set({
         'location': {'geohash': hash, 'geopoint': GeoPoint(position.latitude, position.longitude)},
         'latitude': position.latitude, 'longitude': position.longitude,
@@ -191,7 +186,6 @@ class _CarManagementContentState extends State<CarManagementContent> {
           _loadData(data);
         }
 
-        // --- LOOK HERE: IF DATA EXISTS AND WE ARE NOT EDITING, SHOW THE PRETTY DISPLAY ---
         if (hasExistingData && !_isEditingMode) {
           return _buildReadOnlyProfileView();
         }
@@ -288,9 +282,7 @@ class _CarManagementContentState extends State<CarManagementContent> {
     );
   }
 
-  // ==========================================
-  // VIEW 2: THE FORM VIEW (ONLY FOR NEW REGISTER OR EDIT MODE)
-  // ==========================================
+  // THE FORM VIEW (ONLY FOR NEW REGISTER OR EDIT MODE)
   Widget _buildEditableFormView(String driverId) {
     return Scaffold(
       appBar: AppBar(
