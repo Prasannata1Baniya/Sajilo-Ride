@@ -87,7 +87,7 @@ class RideHistoryContent extends StatelessWidget {
           ),
         ),
         title: Text(
-          ride['carModel'] ?? "Unknown Car",
+          ride['model'] ?? "Unknown Car",
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         subtitle: Column(

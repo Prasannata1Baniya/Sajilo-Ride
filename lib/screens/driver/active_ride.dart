@@ -95,7 +95,7 @@ class _ActiveRideContentState extends State<ActiveRideContent> {
                           children: [
                             const Text("Passenger Request", style: TextStyle(color: Colors.grey)),
                             Text(
-                              widget.bookingData['carModel'] ?? 'Ride',
+                              widget.bookingData['model'] ?? 'Ride',
                               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                             ),
                           ],
@@ -357,7 +357,7 @@ class _ActiveRideContentState extends State<ActiveRideContent> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text("Passenger Request", style: TextStyle(color: Colors.grey)),
-                            Text(widget.bookingData['carModel'], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                            Text(widget.bookingData['model'], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                           ],
                         ),
                       ),

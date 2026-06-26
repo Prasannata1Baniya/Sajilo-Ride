@@ -129,7 +129,7 @@ class DriversEarningContent extends StatelessWidget {
                           child: Icon(Icons.check, color: Colors.white),
                         ),
                         title: Text(
-                          data['carModel'] ?? "Ride",
+                          data['model'] ?? "Ride",
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         subtitle: Column(
@@ -270,7 +270,7 @@ class DriversEarningContent extends StatelessWidget {
                     var data = snapshot.data!.docs[index].data() as Map<String, dynamic>;
                     return ListTile(
                       leading: const CircleAvatar(backgroundColor: Colors.green, child: Icon(Icons.check, color: Colors.white)),
-                      title: Text(data['carModel'] ?? "Ride"),
+                      title: Text(data['model'] ?? "Ride"),
                       subtitle: Text("Payment: ${data['paymentMethod']}"),
                       trailing: Text("Rs. ${data['price']}", style: const TextStyle(fontWeight: FontWeight.bold)),
                     );

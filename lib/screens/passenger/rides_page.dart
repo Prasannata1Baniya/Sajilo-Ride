@@ -153,7 +153,7 @@ class MyRidesPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(data['carModel'] ?? "Ride",
+                        Text(data['model'] ?? "Ride",
                             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 4),
                         Text(isPaid ? "Payment Verified (eSewa)" : "Payment: Cash on Arrival",

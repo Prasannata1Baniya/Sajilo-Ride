@@ -52,15 +52,16 @@ class LocationInputField extends StatelessWidget {
 }
 
 
-// COMPONENT 2: GEOLOCATION DRIVER SELECTOR
+//  GEOLOCATION DRIVER SELECTOR
 class NearByRideSelector extends StatelessWidget {
+  final List<CarModel> liveCars;
   final LatLng? pickupLocation;
   final CarModel? selectedCar;
   final double distance;
   final Function(CarModel car, double calculatedFare) onCarSelected;
 
   const NearByRideSelector({
-    super.key, required this.pickupLocation, required this.selectedCar,
+    super.key,required this.liveCars, required this.pickupLocation, required this.selectedCar,
     required this.distance, required this.onCarSelected,
   });
 

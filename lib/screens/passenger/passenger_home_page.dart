@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -18,7 +19,6 @@ import 'package:sajilo_ride/screens/passenger/booking_confirm.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../navbar/navbar_config.dart';
 import '../../widgets/booking_components.dart';
-
 
 class PassengerHomeContent extends StatefulWidget {
   const PassengerHomeContent({super.key});
@@ -45,11 +45,57 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
   bool isSelectingPickup = true;
 
   List<CarModel> liveCars = [];
+  StreamSubscription<QuerySnapshot>? _driverSubscription;
 
   @override
   void initState() {
     super.initState();
     _getCurrentLocation();
+    _listenToLiveDrivers();
+  }
+
+  @override
+  void dispose() {
+    _driverSubscription?.cancel();
+    _mapController.dispose();
+    super.dispose();
+  }
+
+  void _listenToLiveDrivers() {
+    _driverSubscription = FirebaseFirestore.instance
+        .collection('drivers')
+        .where('isOnline', isEqualTo: true)
+        .snapshots()
+        .listen((snapshot) {
+      List<CarModel> updatedCars = [];
+
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+
+        if (data['latitude'] != null && data['longitude'] != null) {
+          try {
+            updatedCars.add(CarModel.fromMap(data, doc.id));
+          } catch (e) {
+            debugPrint("Error parsing driver document ${doc.id}: $e");
+          }
+        }
+      }
+
+      setState(() {
+        liveCars = updatedCars;
+
+        if (selectedCar == null && updatedCars.isNotEmpty) {
+          selectedCar = updatedCars.first;
+        } else if (selectedCar != null) {
+          bool stillOnline = updatedCars.any((car) => car.driverId == selectedCar!.driverId);
+          if (stillOnline) {
+            selectedCar = updatedCars.firstWhere((car) => car.driverId == selectedCar!.driverId);
+          } else {
+            selectedCar = updatedCars.isNotEmpty ? updatedCars.first : null;
+          }
+        }
+      });
+    }, onError: (error) => debugPrint("Driver Stream Error: $error"));
   }
 
   // --- CORE SYSTEM FUNCTIONALITIES (OSRM, Geo, Payments, FCM) ---
@@ -88,6 +134,8 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
       } else {
         dropOffLocation = pos;
       }
+      routePoints = [];
+      fare = 0;
     });
 
     if (pickupLocation != null && dropOffLocation != null) {
@@ -237,7 +285,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
         'dropoffLat': dropOffLocation!.latitude,
         'dropoffLng': dropOffLocation!.longitude,
         'fare': finalFareString,
-        'carModel': selectedCar!.model,
+        'model': selectedCar!.model,
         'paymentStatus': paymentStatus,
         'paymentMethod': method,
         'timestamp': FieldValue.serverTimestamp(),
@@ -332,10 +380,13 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
   }
 
   Widget _buildMobilePanel() {
+    bool showFooter = selectedCar != null && routePoints.isNotEmpty;
+    double panelHeightFactor = showFooter ? 0.65 : 0.58;
+
     return Align(
       alignment: Alignment.bottomCenter,
       child: Container(
-        height: MediaQuery.of(context).size.height * 0.6,
+        height: MediaQuery.of(context).size.height * panelHeightFactor,
         decoration: _panelDecoration(isMobile: true),
         child: _buildBookingContent(),
       ),
@@ -359,7 +410,6 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
           const Text("Where are you going?", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
 
-          // Refactored Sub-Widget 1: Location Inputs
           LocationInputField(
             icon: Icons.circle, color: Colors.green, label: "Pickup",
             address: _pickupAddress, active: isSelectingPickup,
@@ -374,9 +424,9 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
 
           const Divider(height: 20),
 
-          // 2: Stream-Driven Ride List Selector
           Expanded(
             child: NearByRideSelector(
+              liveCars: liveCars,
               pickupLocation: pickupLocation,
               selectedCar: selectedCar,
               distance: distance,
@@ -389,22 +439,24 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
             ),
           ),
 
-          // 3: Checkout Action Area
-          if (selectedCar != null)
-            FareFooterSection(
-              selectedCar: selectedCar!,
-              selectedPayment: selectedPayment,
-              fare: fare,
-              pickupLocation: pickupLocation,
-              dropOffLocation: dropOffLocation,
-              onPaymentMethodChanged: (method) => setState(() => selectedPayment = method),
-              onConfirmPressed: () {
-                if (selectedPayment == "eSewa") {
-                  kIsWeb ? payWithEsewaWeb(fare) : _processEsewaSDKPayment();
-                } else {
-                  _confirmBooking();
-                }
-              },
+          if (selectedCar != null && routePoints.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 12.0),
+              child: FareFooterSection(
+                selectedCar: selectedCar!,
+                selectedPayment: selectedPayment,
+                fare: fare,
+                pickupLocation: pickupLocation,
+                dropOffLocation: dropOffLocation,
+                onPaymentMethodChanged: (method) => setState(() => selectedPayment = method),
+                onConfirmPressed: () {
+                  if (selectedPayment == "eSewa") {
+                    kIsWeb ? payWithEsewaWeb(fare) : _processEsewaSDKPayment();
+                  } else {
+                    _confirmBooking();
+                  }
+                },
+              ),
             ),
         ],
       ),

@@ -208,7 +208,7 @@ class DriverHomeContent extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(data['carModel'] ?? "Unknown Car", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text(data['model'] ?? "Unknown Car", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                       Text("Payment: ${data['paymentMethod']}",
                           style: TextStyle(color: data['paymentStatus'] == 'paid' ? Colors.green : Colors.red, fontWeight: FontWeight.bold, fontSize: 12)),
                     ],

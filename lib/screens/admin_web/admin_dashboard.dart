@@ -137,7 +137,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
                         final docs = snapshot.data!.docs;
 
-                        // Responsive Grid view adapting dynamically to wide system monitor view sizes
                         return GridView.builder(
                           gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                             maxCrossAxisExtent: 500,

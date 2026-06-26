@@ -32,13 +32,12 @@ class CarModel {
   factory CarModel.fromMap(Map<String, dynamic> map, String docId) => CarModel(
     id: docId,
     model: map['model'] ?? 'Unknown',
-    carNumber: map['carNumber'] ?? '',
+    carNumber: map['plateNumber'] ?? '',
     image: map['image'] ?? '',
     driverId: map['driverId'] ?? '',
     driverName: map['driverName'] ?? 'Driver',
     phone: map['phone'] ?? '',
     vehicleType: map['vehicleType'] ?? 'Standard',
-    // Safe conversion: handles both String or double coming from DB
     pricePerKm: double.tryParse(map['pricePerKm']?.toString() ?? '0.0') ?? 0.0,
     rating: (map['rating'] as num? ?? 0.0).toDouble(),
     isOnline: map['isOnline'] ?? false,
@@ -48,7 +47,7 @@ class CarModel {
 
   Map<String, dynamic> toMap() => {
     'model': model,
-    'carNumber': carNumber,
+    'plateNumber': carNumber,
     'image': image,
     'driverId': driverId,
     'driverName': driverName,
