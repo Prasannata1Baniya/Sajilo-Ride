@@ -19,6 +19,7 @@ import 'package:sajilo_ride/screens/passenger/booking_confirm.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../navbar/navbar_config.dart';
 import '../../widgets/booking_components.dart';
+import '../../widgets/place_search.dart';
 
 class PassengerHomeContent extends StatefulWidget {
   const PassengerHomeContent({super.key});
@@ -410,16 +411,36 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
           const Text("Where are you going?", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
 
-          LocationInputField(
+          /*LocationInputField(
             icon: Icons.circle, color: Colors.green, label: "Pickup",
             address: _pickupAddress, active: isSelectingPickup,
             onTap: () => setState(() => isSelectingPickup = true),
+          ),*/
+
+          LocationInputField(
+            icon: Icons.circle, color: Colors.green, label: "Pickup",
+            address: _pickupAddress, active: isSelectingPickup,
+            onTap: () async {
+              setState(() => isSelectingPickup = true);
+              final result = await showSearch(context: context, delegate: PlaceSearchDelegate());
+              if (result != null) {
+                _updateLocationState(LatLng(result['lat'], result['lon']), true);
+              }
+            },
           ),
+
           const SizedBox(height: 12),
+
           LocationInputField(
             icon: Icons.location_on, color: Colors.red, label: "Drop-off",
             address: _dropoffAddress, active: !isSelectingPickup,
-            onTap: () => setState(() => isSelectingPickup = false),
+            onTap: () async {
+              setState(() => isSelectingPickup = false);
+              final result = await showSearch(context: context, delegate: PlaceSearchDelegate());
+              if (result != null) {
+                _updateLocationState(LatLng(result['lat'], result['lon']), false);
+              }
+            },
           ),
 
           const Divider(height: 20),
