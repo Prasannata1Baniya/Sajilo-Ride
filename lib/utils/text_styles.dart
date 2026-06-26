@@ -39,5 +39,9 @@ class AppTextStyles{
     fontSize: 20,
     fontWeight: FontWeight.bold,
   );
+  static const captionGrey = TextStyle(color: Colors.grey,
+    fontSize: 14,
+    fontWeight: FontWeight.normal,
+  );
 
 }
