@@ -135,7 +135,9 @@ class NearByRideSelector extends StatelessWidget {
               ),
               title: Row(
                 children: [
-                  Text(currentCar.model, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Expanded(
+                      child: Text(currentCar.model,
+                          style: const TextStyle(fontWeight: FontWeight.bold,overflow: TextOverflow.ellipsis,))),
                   const SizedBox(width: 8),
                   _buildFuelBadge(currentCar.vehicleType),
                 ],

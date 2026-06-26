@@ -1,5 +1,114 @@
 import 'package:flutter/material.dart';
 import 'package:sajilo_ride/screens/auth_page/login_page.dart';
+
+class OnBoardingPage extends StatefulWidget {
+  const OnBoardingPage({super.key});
+
+  @override
+  State<OnBoardingPage> createState() => _OnBoardingPageState();
+}
+
+class _OnBoardingPageState extends State<OnBoardingPage> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final double width = MediaQuery.of(context).size.width;
+    final bool isDesktop = width > 650;
+
+    return Scaffold(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: isDesktop
+                ? const AssetImage("assets/images/onboarding_bg.png")
+                : const AssetImage("assets/images/onboarding_bg(mobile).png"),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+            child: Column(
+              children: [
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: const Text(
+                    'SAJILO YATRA',
+                    style: TextStyle(
+                      fontSize: 22,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                ),
+
+                const Spacer(),
+
+                // --- Action Interaction Button ---
+                _buildGetStartedButton(context),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGetStartedButton(BuildContext context) {
+    return AnimatedScale(
+      scale: _isPressed ? 0.96 : 1,
+      duration: const Duration(milliseconds: 100),
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) => setState(() => _isPressed = false),
+        onTapCancel: () => setState(() => _isPressed = false),
+        onTap: () {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const LoginPage()),
+          );
+        },
+        child: Container(
+          width: double.infinity, // Makes the button span nicely across the lower layout area
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          decoration: BoxDecoration(
+            color: Colors.orangeAccent,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.orangeAccent.withValues(alpha: 0.4),
+                blurRadius: 20,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          child: const Text(
+            "GET STARTED",
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2,
+              fontSize: 16,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+
+
+
+
+
+/*import 'package:flutter/material.dart';
+import 'package:sajilo_ride/screens/auth_page/login_page.dart';
 import 'package:sajilo_ride/utils/text_styles.dart';
 
 class OnBoardingPage extends StatefulWidget {
@@ -270,3 +379,4 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
     );
   }
 }
+*/
