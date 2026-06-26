@@ -121,7 +121,7 @@ class DriverMapPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    "Fare: Rs ${bookingData['price'] ?? '0'}",
+                    "Fare: Rs ${bookingData['fare'] ?? '0'}",
                     style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.orange,

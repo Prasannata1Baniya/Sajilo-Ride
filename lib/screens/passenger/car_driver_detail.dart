@@ -93,7 +93,7 @@ class _CarDriverDetailPageState extends State<CarDriverDetailPage> {
                               widget.car.rating.toString(),
                               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                             ),
-                            const Text(" (120+ Rides)", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                            const Text("(120+ Rides)", style: TextStyle(color: Colors.grey, fontSize: 12)),
                           ],
                         ),
                         const SizedBox(height: 10),

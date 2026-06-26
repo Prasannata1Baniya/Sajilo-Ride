@@ -172,12 +172,11 @@ class MyRidesPage extends StatelessWidget {
               child: Column(
                 children: [
                   //_buildInfoTile(Icons.circle_outlined, "Pickup Location", "Kathmandu, Nepal", Colors.blue),
-                  // Pickup address — replace hardcoded string
                   _buildInfoTile(Icons.circle_outlined, "Pickup",
                       data['pickupAddress'] ?? 'Unknown', Colors.blue),
                   const SizedBox(height: 12),
                   _buildInfoTile(Icons.payments_outlined, "Estimated Fare",
-                      "Rs ${data['price']}", Colors.green),
+                      "Rs ${data['fare']}", Colors.green),
                   const SizedBox(height: 20),
                 ],
               ),

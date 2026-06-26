@@ -53,7 +53,7 @@ class DriversEarningContent extends StatelessWidget {
           // Safely parse price whether stored as String or number
           double total = 0;
           for (var doc in snapshot.data!.docs) {
-            final raw = doc['price'];
+            final raw = doc['fare'];
             total += double.tryParse(raw.toString()) ?? 0.0;
           }
 
@@ -109,7 +109,7 @@ class DriversEarningContent extends StatelessWidget {
 
                     // Safely parse price
                     final String priceDisplay =
-                        "Rs. ${data['price'] ?? '0'}";
+                        "Rs. ${data['fare'] ?? '0'}";
 
                     // Safely parse date
                     final DateTime? date =
