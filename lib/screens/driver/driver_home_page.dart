@@ -14,53 +14,49 @@ class DriverHomeContent extends StatelessWidget {
     final authProvider = Provider.of<AuthProviderMethod>(context);
     final driverId = authProvider.user?.uid;
 
-    if (driverId != null) {
-      authProvider.saveDeviceToken(driverId);
-    }
+    if (driverId == null) return const Scaffold(body: Center(child: Text("Not logged in")));
+    authProvider.saveDeviceToken(driverId);
 
-    // Check this specific driver's account approval status dynamically
-    return StreamBuilder<DocumentSnapshot>(
+    return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
-          .collection('users')
-          .doc(driverId)
+          .collection('bookings')
+          .where('driverId', isEqualTo: driverId)
+          .where('status', isEqualTo: 'accepted')
           .snapshots(),
-      builder: (context, userSnapshot) {
-        if (userSnapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator(color: Colors.orange)),
+      builder: (context, tripSnapshot) {
+        if (tripSnapshot.hasData && tripSnapshot.data!.docs.isNotEmpty) {
+          return ActiveRideContent(
+            bookingId: tripSnapshot.data!.docs.first.id,
+            bookingData: tripSnapshot.data!.docs.first.data() as Map<String, dynamic>,
           );
         }
 
-        if (!userSnapshot.hasData || !userSnapshot.data!.exists) {
-          return const Scaffold(
-            body: Center(child: Text("Driver record not found.")),
-          );
-        }
+        // 2. SECOND LEVEL: If no active trip, check account verification status
+        return StreamBuilder<DocumentSnapshot>(
+          stream: FirebaseFirestore.instance.collection('users').doc(driverId).snapshots(),
+          builder: (context, userSnapshot) {
+            if (userSnapshot.connectionState == ConnectionState.waiting) {
+              return const Scaffold(body: Center(child: CircularProgressIndicator(color: Colors.orange)));
+            }
 
-        var userData = userSnapshot.data!.data() as Map<String, dynamic>;
+            if (!userSnapshot.hasData || !userSnapshot.data!.exists) {
+              return const Scaffold(body: Center(child: Text("Record not found.")));
+            }
 
-        // Read string fields safely, converting to lowercase to avoid case-mismatch bugs
-        String rawStatus = (userData['verificationStatus'] ?? userData['status'] ?? 'pending')
-            .toString()
-            .toLowerCase()
-            .trim();
+            var userData = userSnapshot.data!.data() as Map<String, dynamic>;
+            String rawStatus = (userData['verificationStatus'] ?? userData['status'] ?? 'pending').toString().toLowerCase().trim();
+            bool isApproved = userData['isApproved'] == true || userData['approved'] == true || userData['isVerified'] == true;
 
-        // 🛠️ FIXED: Added userData['isVerified'] == true to match your admin panel panel value exactly!
-        bool isExplicitlyApproved = userData['isApproved'] == true ||
-            userData['approved'] == true ||
-            userData['isVerified'] == true;
-
-        // 🚀 ROUTING LOGIC: Evaluate status conditions securely
-        if (rawStatus == 'approved' || rawStatus == 'verified' || isExplicitlyApproved) {
-          return _buildRequestsDashboard(driverId!);
-        }
-
-        if (rawStatus == 'rejected' || rawStatus == 'failed') {
-          return _buildRejectedScreen();
-        }
-
-        // If 'pending' or anything else undetermined, keep showing the review interface
-        return _buildReviewingScreen();
+            // 3. FINAL ROUTING: Show Dashboard, Rejected, or Review screens
+            if (rawStatus == 'approved' || rawStatus == 'verified' || isApproved) {
+              return _buildRequestsDashboard(driverId);
+            }
+            if (rawStatus == 'rejected' || rawStatus == 'failed') {
+              return _buildRejectedScreen();
+            }
+            return _buildReviewingScreen();
+          },
+        );
       },
     );
   }
@@ -76,7 +72,6 @@ class DriverHomeContent extends StatelessWidget {
         stream: FirebaseFirestore.instance
             .collection('bookings')
             .where('status', isEqualTo: 'pending')
-            .where('driverId', isEqualTo: driverId)
             .orderBy('timestamp', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
@@ -259,8 +254,10 @@ class DriverHomeContent extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
                 OutlinedButton(
-                  onPressed: () {},
-                  style: OutlinedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                         onPressed: () => _declineRide(context, docId),
+                  style: OutlinedButton.styleFrom(shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  foregroundColor: Colors.red),
                   child: const Text("DECLINE"),
                 ),
               ],
@@ -270,24 +267,48 @@ class DriverHomeContent extends StatelessWidget {
       ),
     );
   }
-
-  Future<void> _acceptRide(BuildContext context, String docId, String driverId, Map<String, dynamic> data) async {
+  Future<void> _declineRide(BuildContext context, String docId) async {
     try {
+      //Simply mark as declined
       await FirebaseFirestore.instance.collection('bookings').doc(docId).update({
-        'status': 'accepted',
-        'driverId': driverId,
-        'acceptedAt': FieldValue.serverTimestamp(),
+        'status': 'declined',
+        // optional: Adding a field to track who declined it
+       // 'declinedBy': FirebaseFirestore.instance.collection('drivers').doc().id,
       });
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Ride Accepted!"), backgroundColor: Colors.green),
+          const SnackBar(content: Text("Ride declined"), backgroundColor: Colors.redAccent),
         );
+      }
+    } catch (e) {
+      debugPrint("Error declining ride: $e");
+    }
+  }
+
+  Future<void> _acceptRide(BuildContext context, String docId, String driverId, Map<String, dynamic> data) async {
+    try {
+      final docRef = FirebaseFirestore.instance.collection('bookings').doc(docId);
+
+      // Transaction ensures the write only happens if status is still 'pending'
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        final snapshot = await transaction.get(docRef);
+        if (snapshot.data()?['status'] != 'pending') {
+          throw Exception("Ride already taken!");
+        }
+        transaction.update(docRef, {
+          'status': 'accepted',
+          'driverId': driverId,
+          'acceptedAt': FieldValue.serverTimestamp(),
+        });
+      });
+
+      if (context.mounted) {
         Navigator.push(context, MaterialPageRoute(builder: (context) => ActiveRideContent(bookingId: docId, bookingData: data)));
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceAll("Exception: ", ""))));
       }
     }
   }
@@ -305,3 +326,4 @@ class DriverHomeContent extends StatelessWidget {
     );
   }
 }
+

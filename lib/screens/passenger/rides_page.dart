@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../navbar/navbar_config.dart';
 import '../../widgets/app_shell.dart';
 
@@ -14,6 +15,7 @@ class MyRidesPage extends StatelessWidget {
     final String paymentMethod = data['paymentMethod'] ?? 'Cash';
     final bool isPaid = paymentStatus == 'paid';
 
+    if (data['status'] == 'cancelled') return;
     try {
       bool confirm = await showDialog(
         context: context,
@@ -118,6 +120,8 @@ class MyRidesPage extends StatelessWidget {
     bool isPaid = data['paymentStatus'] == 'paid';
     bool canCancel = status == 'pending' || status == 'accepted';
 
+
+
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
@@ -187,6 +191,26 @@ class MyRidesPage extends StatelessWidget {
               color: const Color(0xFFF9FAFB),
               child: Column(
                 children: [
+                  if (status == 'accepted') ...[
+                    const SizedBox(height: 10),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        final String? phone = data['phone'];
+                        if (phone != null && phone.isNotEmpty) {
+                          final Uri launchUri = Uri(scheme: 'tel', path: phone);
+                          launchUrl(launchUri);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Driver phone number not available")),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.phone),
+                      label: const Text("Call Driver"),
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.black, foregroundColor: Colors.white),
+                    ),
+                  ],
+
                   if (status == 'pending') ...[
                     const LinearProgressIndicator(color: Colors.orange, backgroundColor: Color(0xFFEEEEEE)),
                     const SizedBox(height: 12),

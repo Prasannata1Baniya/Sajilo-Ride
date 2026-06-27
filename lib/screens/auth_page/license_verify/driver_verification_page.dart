@@ -207,7 +207,6 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
 
       debugPrint("DEBUG: 🚀 Sending cropped face matrix to FaceRecognitionService inference...");
 
-      // FIX: Added 'await' here to match the updated asynchronous face service pipeline signature
       return _faceService.runInference(resizedFace);
 
     } catch (e) {
