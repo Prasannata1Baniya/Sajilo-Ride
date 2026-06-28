@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
+import 'package:sajilo_ride/screens/auth_page/forgot_password.dart';
 import 'package:sajilo_ride/screens/auth_page/register_page.dart';
 import 'package:sajilo_ride/utils/input_decoration.dart';
 import 'package:sajilo_ride/utils/text_styles.dart';
@@ -108,9 +109,8 @@ class _LoginPageState extends State<LoginPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const SizedBox(height: 20),
-                  // Header Branding
                   const Text(
-                      "Sajilo Ride",
+                      "Sajilo Yatra",
                       style: AppTextStyles.headingWhite
                   ),
                   const SizedBox(height: 6),
@@ -129,7 +129,6 @@ class _LoginPageState extends State<LoginPage> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 28.0, vertical: 36.0),
                       decoration: BoxDecoration(
-                        // Slightly less opaque surface gives it a premium card weight without using BackdropFilter
                         color: Colors.white.withValues(alpha: 0.93),
                         borderRadius: BorderRadius.circular(28),
                         border: Border.all(
@@ -199,13 +198,13 @@ class _LoginPageState extends State<LoginPage> {
                                   : null,
                             ),
 
-                            // Clean Alignment for Forgot Password
+                            // Forgot Password
                             Align(
                               alignment: Alignment.centerRight,
                               child: Padding(
                                 padding: const EdgeInsets.only(top: 6.0),
                                 child: TextButton(
-                                  onPressed: () {},
+                                  onPressed: () =>Navigator.push(context, MaterialPageRoute(builder: (_)=>ForgotPassword())),
                                   style: TextButton.styleFrom(
                                     minimumSize: Size.zero,
                                     padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
