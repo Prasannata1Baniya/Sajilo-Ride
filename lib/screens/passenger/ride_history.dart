@@ -14,6 +14,7 @@ class RideHistoryContent extends StatelessWidget {
     final userId = authProvider.user?.uid;
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F7F9),
       appBar: AppBar(
         title: const Text("Ride History"),
         centerTitle: true,

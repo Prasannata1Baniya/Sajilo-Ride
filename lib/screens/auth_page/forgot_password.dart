@@ -23,40 +23,56 @@ class _ForgotPasswordState extends State<ForgotPassword> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(title: const Text('Reset password')),
+      // Changed to white for a cleaner, modern look,
+      // or you can use Colors.white.withOpacity(0.95)
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('Reset Password', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.orange,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(24.0),
         child: Form(
           key: formKey,
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('Receive an email to reset your password',
-                  style: TextStyle(color: Colors.white)),
+              const Icon(Icons.lock_reset_rounded, size: 80, color: Colors.orange),
               const SizedBox(height: 20),
+              const Text(
+                'Receive an email to reset your password',
+                style: TextStyle(fontSize: 16, color: Colors.black54),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 30),
               TextFormField(
                 controller: emailController,
-                style: const TextStyle(color: Colors.white),
-                cursorColor: Colors.white,
+                cursorColor: Colors.orange,
                 decoration: inputDecorate.buildInputDecoration(
-                    'Email', suffixIcon: const Icon(Icons.email)),
-                validator: (email) =>
-                (email != null && !email.contains('@'))
+                    'Email Address',
+                    suffixIcon: const Icon(Icons.email, color: Colors.orange)
+                ),
+                validator: (email) => (email != null && !email.contains('@'))
                     ? 'Enter a valid Email'
                     : null,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 30),
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(50)),
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size.fromHeight(55),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
                 onPressed: () {
-                  // 2. TRIGGER THE LOGIC
                   if (formKey.currentState!.validate()) {
                     resetPassword();
                   }
                 },
-                label: const Text('Reset Password'),
-                icon: const Icon(Icons.email_outlined),
+                label: const Text('RESET PASSWORD', style: TextStyle(fontWeight: FontWeight.bold)),
+                icon: const Icon(Icons.send_rounded),
               ),
             ],
           ),
@@ -65,11 +81,11 @@ class _ForgotPasswordState extends State<ForgotPassword> {
     );
   }
 
-  Future resetPassword() async {
+  Future<void> resetPassword() async {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
+      builder: (context) => const Center(child: CircularProgressIndicator(color: Colors.orange)),
     );
 
     try {
@@ -77,24 +93,35 @@ class _ForgotPasswordState extends State<ForgotPassword> {
         email: emailController.text.trim(),
       );
 
-      if (mounted) Navigator.of(context).pop();
+      debugPrint("Request successfully sent to Firebase servers.");
 
+      if (!mounted) return;
+      emailController.clear();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password Reset Email Sent! Check your email'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      await Future.delayed(const Duration(milliseconds: 1500));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Password Reset Email Sent!'),
-              backgroundColor: Colors.green),
-        );
         Navigator.of(context).pop();
       }
     } on FirebaseAuthException catch (e) {
-      if (mounted) Navigator.of(context).pop();
+      debugPrint("Firebase Error: ${e.message}");
 
-      // Show error
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message ?? 'An error occurred'),
-              backgroundColor: Colors.red),
-        );
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message ?? 'An error occurred'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.of(context).pop();
       }
     }
   }

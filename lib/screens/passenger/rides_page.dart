@@ -116,11 +116,12 @@ class MyRidesPage extends StatelessWidget {
   }
 
   Widget _buildActiveRideCard(BuildContext context, String docId, Map<String, dynamic> data) {
-    String status = data['status'] ?? 'pending';
+    final status = data['status'] ?? 'pending';
     bool isPaid = data['paymentStatus'] == 'paid';
     bool canCancel = status == 'pending' || status == 'accepted';
 
-
+    // If the ride was just cancelled, don't show the card at all
+    if (status == 'cancelled') return const SizedBox.shrink();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -172,7 +173,7 @@ class MyRidesPage extends StatelessWidget {
 
 
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 15),
               child: Column(
                 children: [
                   //_buildInfoTile(Icons.circle_outlined, "Pickup Location", "Kathmandu, Nepal", Colors.blue),
@@ -187,7 +188,7 @@ class MyRidesPage extends StatelessWidget {
             ),
 
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(15),
               color: const Color(0xFFF9FAFB),
               child: Column(
                 children: [
@@ -234,7 +235,7 @@ class MyRidesPage extends StatelessWidget {
                       ],
                     ),
                   ],
-
+                  const SizedBox(height: 12),
                   if (canCancel) ...[
                     Container(
                       width: double.infinity,
@@ -247,7 +248,7 @@ class MyRidesPage extends StatelessWidget {
                           ),
                       ),
                     ),
-                    const SizedBox(height: 15),
+                    const SizedBox(height: 12),
                     SizedBox(
                       width: double.infinity,
                       height: 50,

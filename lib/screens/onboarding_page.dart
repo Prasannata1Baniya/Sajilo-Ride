@@ -72,7 +72,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
           );
         },
         child: Container(
-          width: double.infinity, // Makes the button span nicely across the lower layout area
+          width: double.infinity,
           alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(vertical: 18),
           decoration: BoxDecoration(

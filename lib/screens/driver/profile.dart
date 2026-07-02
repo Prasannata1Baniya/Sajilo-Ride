@@ -75,7 +75,12 @@ class DriverProfileContent extends StatelessWidget {
                   icon: Icons.history,
                   title: "Ride History",
                   onTap: () {
-                    // Navigate to a history page if you have one
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>  CarManagementContent(),
+                      ),
+                    );
                   },
                 ),
                 _buildProfileOption(
@@ -124,37 +129,62 @@ class DriverProfileContent extends StatelessWidget {
   Widget _buildProfileOption({required IconData icon, required String title, required VoidCallback onTap}) {
     return ListTile(
       onTap: onTap,
-      leading: Icon(icon, color: Colors.black87),
-      title: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.orange.shade50,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: Colors.orange),
+      ),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
     );
   }
 
-  // --- LOGIC: LOGOUT DIALOG ---
+  // LOGOUT DIALOG ---
   void _showLogoutDialog(BuildContext context, AuthProviderMethod auth) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Logout"),
-        content: const Text("Are you sure you want to log out of Sajilo Ride?"),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Colors.white,
+        title: const Column(
+          children: [
+            Icon(Icons.logout_rounded, color: Colors.redAccent, size: 40),
+            SizedBox(height: 10),
+            Text("Sign Out", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
+          ],
+        ),
+        content: const Text(
+          "Are you sure you want to log out of Sajilo Ride?",
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.black54),
+        ),
+        actionsAlignment: MainAxisAlignment.spaceEvenly,
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
+            child: const Text("CANCEL", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
+            ),
             onPressed: () async {
-              await auth.signOut(); // Call your Firebase Sign Out logic
+              await auth.signOut();
               if (context.mounted) {
-                // Clear the navigation stack and go to Login
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (context) => const LoginPage()),
-                      (Route<dynamic> route) => false,
+                      (route) => false,
                 );
               }
             },
-            child: const Text("Logout", style: TextStyle(color: Colors.white)),
+            child: const Text("LOGOUT", style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),

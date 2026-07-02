@@ -49,6 +49,7 @@ class _ActiveRideContentState extends State<ActiveRideContent> {
         final double dropoffLng = (widget.bookingData['dropoffLng'] ?? 85.3240).toDouble();
 
         return Scaffold(
+          backgroundColor: const Color(0xFFF5F7F9),
           appBar: AppBar(
             title: Text(_currentStatus == 'accepted' ? "Navigate to Pickup" : "Trip Ongoing"),
             backgroundColor: Colors.black,
@@ -140,19 +141,40 @@ class _ActiveRideContentState extends State<ActiveRideContent> {
   Future<void> _updateTripStatus() async {
     if (_currentStatus == 'accepted') {
       final otpController = TextEditingController();
-      final confirmed = await showGeneralDialog<bool>(
+
+      final bool? confirmed = await showModalBottomSheet<bool>(
         context: context,
-        pageBuilder: (context, anim1, anim2) => AlertDialog(
-          title: const Text("Enter Passenger OTP"),
-          content: TextField(
-            controller: otpController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(hintText: "Ask passenger for 4-digit code"),
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        builder: (context) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            top: 20, left: 20, right: 20,
           ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel")),
-            ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text("Start Trip")),
-          ],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("Verify Passenger", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
+              TextField(
+                controller: otpController,
+                keyboardType: TextInputType.number,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  labelText: "Enter 4-digit OTP",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text("Start Trip"),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       );
 
@@ -173,7 +195,6 @@ class _ActiveRideContentState extends State<ActiveRideContent> {
         'status': nextStatus,
         if (nextStatus == 'completed') 'completedAt': FieldValue.serverTimestamp(),
       });
-      // No need to manually pop or setState here, StreamBuilder will handle the UI update!
     } catch (e) {
       debugPrint("Status Update Error: $e");
     }
