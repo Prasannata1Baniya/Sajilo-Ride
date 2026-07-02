@@ -31,7 +31,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final List<String> roles = ['passenger', 'driver'];
   String? selectedRole;
   String? error;
-  final bool _isLoading = false;
+  bool _isLoading = false;
 
   final InputDecorate inputDecorate = InputDecorate();
   bool _isPasswordObscured = true;
@@ -80,6 +80,10 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _onNextPressed() async {
+    // If we are currently checking, don't allow navigation
+    setState(() => error = null); // Clear previous errors
+    setState(() => _isLoading = true); // Start loading
+
     // Check email first
     bool exists = await emailExists(_emailController.text.trim());
 
@@ -122,7 +126,7 @@ class _RegisterPageState extends State<RegisterPage> {
   Future<bool> emailExists(String email) async {
     final snapshot = await FirebaseFirestore.instance
         .collection('users')
-        .where('email', isEqualTo: email)
+        .where('email', isEqualTo: email.toLowerCase())
         .limit(1)
         .get();
 
