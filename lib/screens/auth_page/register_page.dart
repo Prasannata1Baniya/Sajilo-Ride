@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:sajilo_ride/screens/auth_page/passenger_final_register.dart';
@@ -78,7 +79,18 @@ class _RegisterPageState extends State<RegisterPage> {
     return false;
   }
 
-  void _onNextPressed() {
+  Future<void> _onNextPressed() async {
+    // Check email first
+    bool exists = await emailExists(_emailController.text.trim());
+
+    if (!mounted) return;
+    if (exists) {
+      setState(() {
+        error = "This email is already registered.";
+      });
+      return;
+    }
+
     if (selectedRole == 'driver') {
       Navigator.push(
         context,
@@ -105,6 +117,16 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
       );
     }
+  }
+
+  Future<bool> emailExists(String email) async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('email', isEqualTo: email)
+        .limit(1)
+        .get();
+
+    return snapshot.docs.isNotEmpty;
   }
 
   @override
@@ -218,6 +240,21 @@ class _RegisterPageState extends State<RegisterPage> {
                                       decoration: inputDecorate.buildInputDecoration("Email").copyWith(
                                         suffixIcon: Icon(Icons.email_outlined, color: Colors.orange.withValues(alpha: 0.8), size: 20),
                                       ),
+                                        onEditingComplete: () async {
+                                          FocusScope.of(context).unfocus();
+
+                                          bool exists = await emailExists(_emailController.text.trim());
+
+                                          if (exists) {
+                                            setState(() {
+                                              error = "This email is already registered.";
+                                            });
+                                          } else {
+                                            setState(() {
+                                              error = null;
+                                            });
+                                          }
+                                        },
                                       validator: (value) {
                                         if (value == null || value.trim().isEmpty) {
                                           return "Email is required";
