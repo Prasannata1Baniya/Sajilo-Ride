@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 import 'package:image/image.dart' as img;
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
-import 'package:sajilo_ride/screens/auth_page/login_page.dart';
 import '../../../navbar/navbar_config.dart';
 import '../../../widgets/app_shell.dart';
 import 'face_recognition_service.dart';
