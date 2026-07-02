@@ -8,6 +8,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
+import '../navbar/navbar_config.dart';
+
 class AuthProviderMethod extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -102,10 +104,19 @@ class AuthProviderMethod extends ChangeNotifier {
 
       return 'Success';
     } on FirebaseAuthException catch (e) {
+      if (e.code == 'email-already-in-use') {
+        return "This email is already registered. Please login instead.";
+      }
       return e.message ?? "An authentication error occurred.";
     } catch (e) {
       return e.toString();
     }
+  }
+
+  Future<UserRole> getCurrentUserRole() async {
+    if (user == null) return UserRole.passenger;
+    String roleString = await getUserRole(user!.uid);
+    return roleString == 'driver' ? UserRole.driver : UserRole.passenger;
   }
 
   // --- FETCH ROLE ---
@@ -153,7 +164,7 @@ class AuthProviderMethod extends ChangeNotifier {
     }
   }
 
-  Future<void> signOut() async {
+  /*Future<void> signOut() async {
     // clear token field on sign-out to prevent stale tracking
     if (user != null) {
       try {
@@ -164,6 +175,20 @@ class AuthProviderMethod extends ChangeNotifier {
           });
         }
       } catch (_) {}
+    }
+    await _auth.signOut();
+  }*/
+
+  Future<void> signOut() async {
+    if (user != null) {
+      try {
+        // Delete token from 'users' collection to match save logic
+        await _firestore.collection('users').doc(user!.uid).update({
+          'deviceToken': FieldValue.delete(),
+        });
+      } catch (e) {
+        debugPrint("Error clearing token on sign-out: $e");
+      }
     }
     await _auth.signOut();
   }

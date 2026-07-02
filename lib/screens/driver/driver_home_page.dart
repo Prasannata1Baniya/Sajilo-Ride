@@ -6,8 +6,28 @@ import 'package:sajilo_ride/auth/auth_provider.dart';
 import 'package:sajilo_ride/screens/driver/active_ride.dart';
 import '../driver/driver_map_page.dart';
 
-class DriverHomeContent extends StatelessWidget {
+class DriverHomeContent extends StatefulWidget {
   const DriverHomeContent({super.key});
+
+  @override
+  State<DriverHomeContent> createState() => _DriverHomeContentState();
+}
+
+class _DriverHomeContentState extends State<DriverHomeContent> {
+
+  @override
+  void initState() {
+    super.initState();
+    // Call once when the widget is first created
+    final authProvider = Provider.of<AuthProviderMethod>(context, listen: false);
+    final driverId = authProvider.user?.uid;
+    if (driverId != null) {
+      authProvider.saveDeviceToken(driverId);
+    }
+  }
+
+
+  bool _isAccepting = false;
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +109,7 @@ class DriverHomeContent extends StatelessWidget {
             itemBuilder: (context, index) {
               var doc = snapshot.data!.docs[index];
               var data = doc.data() as Map<String, dynamic>;
-              return _buildRequestCard(context, doc.id, data, driverId);
+              return _buildRequestCard(context, doc.id, data, driverId,key: ValueKey(doc.id),);
             },
           );
         },
@@ -177,14 +197,29 @@ class DriverHomeContent extends StatelessWidget {
   }
 
   // --- UI: CARD AND BUILDERS ---
-  Widget _buildRequestCard(BuildContext context, String docId, Map<String, dynamic> data, String driverId) {
+  Widget _buildRequestCard(BuildContext context, String docId, Map<String, dynamic> data, String driverId,
+      {Key? key}) {
     String? carImagePath = data['carImage']?.toString();
-    return Card(
+    return Container(
+      key: key,
       margin: const EdgeInsets.only(bottom: 16),
-      elevation: 5,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      //elevation: 5,
+      //shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
             Row(
@@ -198,6 +233,16 @@ class DriverHomeContent extends StatelessWidget {
                       : AssetImage(carImagePath)) as ImageProvider
                       : null,
                 ),
+                /*Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(color: Colors.orange.shade50, borderRadius: BorderRadius.circular(12)),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: carImagePath != null
+                        ? Image.network(carImagePath, width: 50, height: 50, fit: BoxFit.cover)
+                        : const Icon(Icons.directions_car, size: 50, color: Colors.orange),
+                  ),
+                ),*/
                 const SizedBox(width: 15),
                 Expanded(
                   child: Column(
@@ -212,13 +257,21 @@ class DriverHomeContent extends StatelessWidget {
                 Text("Rs ${data['fare'] ?? '0'}", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.orange)),
               ],
             ),
-            const Divider(height: 30),
+            //const Divider(height: 30),
+
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Divider(height: 1),
+            ),
+
             Row(
               children: [
                 const Icon(Icons.location_on, color: Colors.red),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Text("Pickup: ${data['pickupAddress'] ?? 'Fetching...'}", style: const TextStyle(color: Colors.black54, fontSize: 13)),
+                  child: Text("Pickup: ${data['pickupAddress'] ?? 'Fetching...'}",
+                      style: const TextStyle(color: Colors.black54, fontSize: 13,
+                        overflow: TextOverflow.ellipsis,)),
                 ),
                 TextButton.icon(
                   onPressed: () {
@@ -243,13 +296,20 @@ class DriverHomeContent extends StatelessWidget {
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () => _acceptRide(context, docId, driverId, data),
+                    //onPressed: () => _acceptRide(context, docId, driverId, data),
+                    onPressed: _isAccepting ? null : () async {
+                      setState(() => _isAccepting = true);
+                      await _acceptRide(context, docId, driverId, data);
+                      if (mounted) setState(() => _isAccepting = false);
+                    },
                     style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-                    child: const Text("ACCEPT RIDE"),
+                    child: _isAccepting
+                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white))
+                        : const Text("ACCEPT RIDE"),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -267,6 +327,7 @@ class DriverHomeContent extends StatelessWidget {
       ),
     );
   }
+
   Future<void> _declineRide(BuildContext context, String docId) async {
     try {
       //Simply mark as declined
@@ -302,10 +363,9 @@ class DriverHomeContent extends StatelessWidget {
           'acceptedAt': FieldValue.serverTimestamp(),
         });
       });
-
-      if (context.mounted) {
+      /*if (context.mounted) {
         Navigator.push(context, MaterialPageRoute(builder: (context) => ActiveRideContent(bookingId: docId, bookingData: data)));
-      }
+      }*/
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceAll("Exception: ", ""))));

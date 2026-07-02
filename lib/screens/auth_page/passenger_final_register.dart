@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
 import 'package:sajilo_ride/screens/auth_page/login_page.dart';
 
+import '../../navbar/navbar_config.dart';
+import '../../widgets/app_shell.dart';
+
 class PassengerFinalRegisterPage extends StatefulWidget {
   final String name;
   final String email;
@@ -57,7 +60,7 @@ class _PassengerFinalRegisterPageState
       );
 
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const LoginPage()),
+        MaterialPageRoute(builder: (_) => const AppShell(userRole: UserRole.passenger)),
             (route) => false,
       );
     } else {

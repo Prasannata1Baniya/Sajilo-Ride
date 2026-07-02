@@ -6,10 +6,14 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../navbar/navbar_config.dart';
 import '../../widgets/app_shell.dart';
 
-class MyRidesPage extends StatelessWidget {
+class MyRidesPage extends StatefulWidget {
   const MyRidesPage({super.key});
 
-  // --- FEATURE: PROFESSIONAL CANCELLATION & REFUND LOGIC ---
+  @override
+  State<MyRidesPage> createState() => _MyRidesPageState();
+}
+
+class _MyRidesPageState extends State<MyRidesPage> {
   Future<void> _handleCancelRide(BuildContext context, String docId, Map<String, dynamic> data) async {
     final String paymentStatus = data['paymentStatus'] ?? 'unpaid';
     final String paymentMethod = data['paymentMethod'] ?? 'Cash';
@@ -195,13 +199,19 @@ class MyRidesPage extends StatelessWidget {
                   if (status == 'accepted') ...[
                     const SizedBox(height: 10),
                     ElevatedButton.icon(
-                      onPressed: () {
-                        final String? phone = data['phone'];
+                      onPressed: () async {
+                        final messenger = ScaffoldMessenger.of(context);
+                        final driverId = data['driverId'];
+                        String? phone = data['phone'];
+                        if (phone == null || phone.isEmpty) {
+                          final driverDoc = await FirebaseFirestore.instance.collection('drivers').doc(driverId).get();
+                          phone = driverDoc.data()?['phone'];
+                        }
                         if (phone != null && phone.isNotEmpty) {
                           final Uri launchUri = Uri(scheme: 'tel', path: phone);
-                          launchUrl(launchUri);
+                          await launchUrl(launchUri);
                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
+                          messenger.showSnackBar(
                             const SnackBar(content: Text("Driver phone number not available")),
                           );
                         }
@@ -272,7 +282,6 @@ class MyRidesPage extends StatelessWidget {
   }
 
   // --- PREMIUM UI HELPERS ---
-
   Widget _buildStatusBadge(String status) {
     Color color = status == 'ongoing' ? Colors.blue : (status == 'pending' ? Colors.orange : Colors.green);
     return Container(

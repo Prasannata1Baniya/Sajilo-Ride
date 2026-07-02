@@ -139,6 +139,8 @@ class _ActiveRideContentState extends State<ActiveRideContent> {
   }
 
   Future<void> _updateTripStatus() async {
+
+
     if (_currentStatus == 'accepted') {
       final otpController = TextEditingController();
 
@@ -164,15 +166,41 @@ class _ActiveRideContentState extends State<ActiveRideContent> {
                 autofocus: true,
                 decoration: const InputDecoration(
                   labelText: "Enter 4-digit OTP",
+                  focusColor: Colors.orange,
                   border: OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text("Start Trip"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.white,
+                  elevation: 2,
+                  minimumSize: const Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.play_arrow, color: Colors.white),
+                    SizedBox(width: 8),
+                    Text(
+                      "START TRIP",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 20),
+
             ],
           ),
         ),
@@ -188,13 +216,34 @@ class _ActiveRideContentState extends State<ActiveRideContent> {
       }
     }
 
-    final String nextStatus = _currentStatus == 'accepted' ? 'ongoing' : 'completed';
-
+    /*final String nextStatus = _currentStatus == 'accepted' ? 'ongoing' : 'completed';
     try {
       await FirebaseFirestore.instance.collection('bookings').doc(widget.bookingId).update({
         'status': nextStatus,
         if (nextStatus == 'completed') 'completedAt': FieldValue.serverTimestamp(),
       });
+    } catch (e) {
+      debugPrint("Status Update Error: $e");
+    }*/
+
+
+    final String nextStatus = _currentStatus == 'accepted' ? 'ongoing' : 'completed';
+    try {
+      Map<String, dynamic> updateData = {
+        'status': nextStatus,
+      };
+
+      if (nextStatus == 'completed') {
+        updateData['completedAt'] = FieldValue.serverTimestamp();
+
+        // If it's a cash ride, mark as 'cash_collected'
+        // If it was already 'paid' (eSewa), mark it as 'paid'
+        if (widget.bookingData['paymentStatus'] != 'paid') {
+          updateData['paymentStatus'] = 'cash_collected';
+        }
+      }
+
+      await FirebaseFirestore.instance.collection('bookings').doc(widget.bookingId).update(updateData);
     } catch (e) {
       debugPrint("Status Update Error: $e");
     }
