@@ -33,6 +33,8 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
   XFile? _selfieFile;
 
   bool _isLoading = false;
+  String? error;
+
   final FaceRecognitionService _faceService = FaceRecognitionService();
 
   @override
@@ -47,6 +49,30 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
   void dispose() {
     _faceService.close();
     super.dispose();
+  }
+
+  void _showDialog({
+    required String title,
+    required String message,
+    required VoidCallback onRetry,
+  }) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              onRetry();
+            },
+            child: const Text("Retry"),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _pickImage(ImageSource source, bool isSelfie) async {
@@ -104,8 +130,16 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
     debugPrint("DEBUG: Calculated face biometric distance -> $distance");
 
     if (distance > 0.6) {
-      _showSnackBar("Face Verification Failed! The selfie face does not match your driving license document.", isError: true);
-      setState(() => _isLoading = false);
+      //_showSnackBar("Face Verification Failed! The selfie face does not match your driving license document.", isError: true);
+      //setState(() => _isLoading = false);
+
+      // Instead of just failing, allow a "Retry" prompt
+      _showDialog(
+          title: "Verification Mismatch",
+          message: "The selfie doesn't match the license clearly. Ensure you are in a bright area, remove glasses, and look directly at the camera.",
+          onRetry: () => setState(() => _isLoading = false)
+      );
+
       return;
     }
 
@@ -135,8 +169,38 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
       setState(() => _isLoading = false);
       _showSnackBar(message, isError: true);
     }
+
+    try {
+      final message = await authProvider.signUpWithEmailAndPassword(
+        widget.name,
+        widget.email,
+        widget.password,
+        widget.phone,
+        'driver',
+        licenseFile: _licenseFile,
+        faceEmbeddings: selfieEmbeddings,
+      );
+
+      if (!mounted) return;
+
+      if (message == 'Success') {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const AppShell(userRole: UserRole.driver)),
+              (route) => false,
+        );
+      } else if (message.contains("email-already-in-use")) {
+        Navigator.pop(context, "This email is already registered.");
+      } else {
+        setState(() => _isLoading = false);
+        _showSnackBar(message, isError: true);
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      _showSnackBar("An error occurred: $e", isError: true);
+    }
   }
 
+  ///calculate Distance
   double _calculateDistance(List<double> embedding1, List<double> embedding2) {
     if (embedding1.length != embedding2.length) return 999.0;
     double sum = 0.0;
@@ -147,6 +211,8 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
     return sqrt(sum);
   }
 
+
+  ///Extract embeddings
   Future<List<double>?> _extractEmbeddings(XFile file, {required bool isDocument}) async {
     if (kIsWeb) return null;
 
@@ -212,7 +278,7 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
 
       return _faceService.runInference(resizedFace);
 
-    } catch (e) {
+    }catch (e) {
       debugPrint("DEBUG: 🚨 Error inside processing pipeline: $e");
       await faceDetector.close();
     }

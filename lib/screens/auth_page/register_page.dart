@@ -46,29 +46,6 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  /*bool _isCurrentStepValid() {
-    if (currentStep == 1) {
-      if (!_step1Key.currentState!.validate()) return false;
-      final nameValid = _nameController.text.trim().isNotEmpty;
-      final emailValid = _emailController.text.trim().contains('@');
-      return nameValid && emailValid;
-    }
-
-    if (currentStep == 2) {
-      if (!_step2Key.currentState!.validate()) return false;
-      final phoneValid = _numController.text.length >= 10;
-      final passwordValid = _passwordController.text.length >= 6;
-      return phoneValid && passwordValid;
-    }
-
-    if (currentStep == 3) {
-      if (!_step3Key.currentState!.validate()) return false;
-      return selectedRole != null;
-    }
-
-    return false;
-  }*/
-
   bool _isCurrentStepValid() {
     if (currentStep == 1) return _step1Key.currentState!.validate();
     if (currentStep == 2) return _step2Key.currentState!.validate();
@@ -80,55 +57,92 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _onNextPressed() async {
-    // If we are currently checking, don't allow navigation
-    setState(() => error = null); // Clear previous errors
-    setState(() => _isLoading = true); // Start loading
+    // 1. Reset error and start loading
+    setState(() {
+      error = null;
+      _isLoading = true;
+    });
 
-    // Check email first
-    bool exists = await emailExists(_emailController.text.trim());
+    try {
+      // 2. Perform the Firestore check
+      bool exists = await emailExists(_emailController.text.trim());
 
-    if (!mounted) return;
-    if (exists) {
-      setState(() {
-        error = "This email is already registered.";
-      });
-      return;
-    }
+      if (!mounted) return;
 
-    if (selectedRole == 'driver') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => DriverVerificationPage(
-            name: _nameController.text.trim(),
-            email: _emailController.text.trim(),
-            password: _passwordController.text.trim(),
-            phone: _phoneNumber,
+      if (exists) {
+        setState(() {
+          error = "This email is already registered.";
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // 3. If we reach here, email is fine!
+      // Stop loading BEFORE navigating
+      setState(() => _isLoading = false);
+
+      // 4. Navigate
+      if (selectedRole == 'driver') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                DriverVerificationPage(
+                  name: _nameController.text.trim(),
+                  email: _emailController.text.trim(),
+                  password: _passwordController.text.trim(),
+                  phone: _phoneNumber,
+                ),
           ),
-        ),
-      );
-    } else {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => PassengerFinalRegisterPage(
-            name: _nameController.text.trim(),
-            email: _emailController.text.trim(),
-            password: _passwordController.text.trim(),
-            phone: _phoneNumber,
-            role: 'passenger',
+        );
+      } else {
+        final result = await  Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                PassengerFinalRegisterPage(
+                  name: _nameController.text.trim(),
+                  email: _emailController.text.trim(),
+                  password: _passwordController.text.trim(),
+                  phone: _phoneNumber,
+                  role: 'passenger',
+                ),
           ),
-        ),
-      );
+        );
+        if (result is String) {
+          setState(() {
+            error = result;     // Show the error message
+            currentStep = 1;    // Send them back to the email field
+            _isLoading = false;
+          });
+        }
+      }
+    }catch (e) {
+      setState(() => _isLoading = false);
+      debugPrint("Error checking email: $e");
     }
   }
 
-  Future<bool> emailExists(String email) async {
+  /*Future<bool> emailExists(String email) async {
     final snapshot = await FirebaseFirestore.instance
         .collection('users')
         .where('email', isEqualTo: email.toLowerCase())
         .limit(1)
         .get();
+
+    return snapshot.docs.isNotEmpty;
+  }*/
+  Future<bool> emailExists(String email) async {
+    final String normalizedEmail = email.toLowerCase().trim();
+
+    debugPrint("DEBUG: Searching for email: $normalizedEmail");
+
+    final snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('email', isEqualTo: normalizedEmail)
+        .get();
+
+    debugPrint("DEBUG: Found ${snapshot.docs.length} documents.");
 
     return snapshot.docs.isNotEmpty;
   }
@@ -384,15 +398,36 @@ class _RegisterPageState extends State<RegisterPage> {
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                               ),
 
-                              onPressed: _isLoading ? null : () {
-                                if (_isCurrentStepValid()) {
-                                  if (currentStep < 3) {
-                                    setState(() => currentStep++);
-                                  } else {
-                                    _onNextPressed();
+                              onPressed: _isLoading ? null : () async {
+                                // 1. First, validate the form for the current step
+                                if (!_isCurrentStepValid()) return;
+                                // 2. If at Step 1, run the email check immediately
+                                if (currentStep == 1) {
+                                  setState(() => _isLoading = true);
+                                  bool exists = await emailExists(_emailController.text.trim());
+                                  if (exists) {
+                                    setState(() {
+                                      error = "This email is already registered.";
+                                      _isLoading = false;
+                                    });
+                                    return; // Stop here! Do not go to Step 2.
                                   }
+
+                                  // Email is fine, move to step 2
+                                  setState(() {
+                                    error = null;
+                                    _isLoading = false;
+                                    currentStep++;
+                                  });
+                                }
+                                // 3. For other steps, just handle the increment or final navigation
+                                else if (currentStep < 3) {
+                                  setState(() => currentStep++);
+                                } else {
+                                  _onNextPressed(); // This is for the final Step 3 action
                                 }
                               },
+
                               child: _isLoading
                                   ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                                   : Text(
@@ -451,3 +486,26 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 }
+
+
+
+/*bool _isCurrentStepValid() {
+    if (currentStep == 1) {
+      if (!_step1Key.currentState!.validate()) return false;
+      final nameValid = _nameController.text.trim().isNotEmpty;
+      final emailValid = _emailController.text.trim().contains('@');
+      return nameValid && emailValid;
+    }
+    if (currentStep == 2) {
+      if (!_step2Key.currentState!.validate()) return false;
+      final phoneValid = _numController.text.length >= 10;
+      final passwordValid = _passwordController.text.length >= 6;
+      return phoneValid && passwordValid;
+    }
+
+    if (currentStep == 3) {
+      if (!_step3Key.currentState!.validate()) return false;
+      return selectedRole != null;
+    }
+    return false;
+  }*/

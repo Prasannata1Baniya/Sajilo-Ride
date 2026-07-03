@@ -62,11 +62,15 @@ class _PassengerFinalRegisterPageState
         MaterialPageRoute(builder: (_) => const AppShell(userRole: UserRole.passenger)),
             (route) => false,
       );
-    } else {
-      setState(() {
-        _isLoading = false;
-        error = message;
-      });
+    }else {
+      if (message.contains("email-already-in-use")) {
+        Navigator.pop(context, "This email is already registered.");
+      } else {
+        setState(() {
+          _isLoading = false;
+          error = message;
+        });
+      }
     }
   }
 
