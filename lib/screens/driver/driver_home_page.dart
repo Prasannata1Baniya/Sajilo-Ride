@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
 import 'package:sajilo_ride/screens/driver/active_ride.dart';
+import '../../widgets/driver_car_avatar_widget.dart';
 import '../driver/driver_map_page.dart';
 
 class DriverHomeContent extends StatefulWidget {
@@ -18,14 +19,15 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
   @override
   void initState() {
     super.initState();
-    // Call once when the widget is first created
-    final authProvider = Provider.of<AuthProviderMethod>(context, listen: false);
-    final driverId = authProvider.user?.uid;
-    if (driverId != null) {
-      authProvider.saveDeviceToken(driverId);
-    }
-  }
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = Provider.of<AuthProviderMethod>(context, listen: false);
+      final driverId = authProvider.user?.uid;
+      if (driverId != null) {
+        authProvider.saveDeviceToken(driverId);
+      }
+    });
+  }
 
   bool _isAccepting = false;
 
@@ -41,7 +43,8 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
       stream: FirebaseFirestore.instance
           .collection('bookings')
           .where('driverId', isEqualTo: driverId)
-          .where('status', isEqualTo: 'accepted')
+          //.where('status', isEqualTo: 'accepted')
+          .where('status', whereIn: ['accepted', 'ongoing'])
           .snapshots(),
       builder: (context, tripSnapshot) {
         if (tripSnapshot.hasData && tripSnapshot.data!.docs.isNotEmpty) {
@@ -92,7 +95,7 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
         stream: FirebaseFirestore.instance
             .collection('bookings')
             .where('status', isEqualTo: 'pending')
-            .orderBy('timestamp', descending: true)
+            //.orderBy('timestamp', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -199,7 +202,8 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
   // --- UI: CARD AND BUILDERS ---
   Widget _buildRequestCard(BuildContext context, String docId, Map<String, dynamic> data, String driverId,
       {Key? key}) {
-    String? carImagePath = data['carImage']?.toString();
+    //String? carImagePath = data['image']?.toString();
+    debugPrint("DEBUG: Image URL found in booking: ${data['image']}");
     return Container(
       key: key,
       margin: const EdgeInsets.only(bottom: 16),
@@ -224,32 +228,16 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
           children: [
             Row(
               children: [
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Colors.orange.shade100,
-                  backgroundImage: carImagePath != null
-                      ? (carImagePath.startsWith('http')
-                      ? NetworkImage(carImagePath)
-                      : AssetImage(carImagePath)) as ImageProvider
-                      : null,
-                ),
-                /*Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(color: Colors.orange.shade50, borderRadius: BorderRadius.circular(12)),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: carImagePath != null
-                        ? Image.network(carImagePath, width: 50, height: 50, fit: BoxFit.cover)
-                        : const Icon(Icons.directions_car, size: 50, color: Colors.orange),
-                  ),
-                ),*/
+
+
+                DriverCarAvatarWidget(driverId: data['driverId'] ?? 'unknown'),
                 const SizedBox(width: 15),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(data['model'] ?? "Unknown Car", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      Text("Payment: ${data['paymentMethod']}",
+                      Text(data['model'] ?? "Ride Request", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text("Payment: ${data['paymentMethod'] ?? 'Cash'}",
                           style: TextStyle(color: data['paymentStatus'] == 'paid' ? Colors.green : Colors.red, fontWeight: FontWeight.bold, fontSize: 12)),
                     ],
                   ),
@@ -270,8 +258,8 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text("Pickup: ${data['pickupAddress'] ?? 'Fetching...'}",
-                      style: const TextStyle(color: Colors.black54, fontSize: 13,
-                        overflow: TextOverflow.ellipsis,)),
+                      style: const TextStyle(color: Colors.black54, fontSize: 13,)
+                  ),
                 ),
                 TextButton.icon(
                   onPressed: () {

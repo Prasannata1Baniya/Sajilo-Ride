@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../screens/passenger/passenger_home_page.dart';
-import '../screens/passenger/rides_page.dart';
+import '../screens/passenger/bookings_page.dart';
 import '../screens/passenger/ride_history.dart';
 import '../screens/passenger/profile.dart';
 import '../screens/driver/driver_home_page.dart';
@@ -20,7 +20,7 @@ class NavItem {
 
 const List<NavItem> passengerDestinations = [
   NavItem(label: 'Home', icon: Icons.home, screen: PassengerHomeContent()),
-  NavItem(label: "Booking", icon: Icons.book_online_outlined, screen: MyRidesPage()),
+  NavItem(label: "Booking", icon: Icons.book_online_outlined, screen: MyBookingsPage()),
   NavItem(label: 'History', icon: Icons.history_outlined, screen: RideHistoryContent()),
   NavItem(label: 'Profile', icon: Icons.person_outline, screen: PassengerProfileContent()),
 ];

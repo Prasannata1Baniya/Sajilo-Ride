@@ -35,8 +35,8 @@ class DriverMapPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Pickup Location"),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: Colors.orange,
+        foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: Stack(

@@ -2,18 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
+import 'package:sajilo_ride/screens/passenger/rating_screen.dart';
+import 'package:sajilo_ride/utils/phone_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../navbar/navbar_config.dart';
 import '../../widgets/app_shell.dart';
 
-class MyRidesPage extends StatefulWidget {
-  const MyRidesPage({super.key});
+class MyBookingsPage extends StatefulWidget {
+  const MyBookingsPage({super.key});
 
   @override
-  State<MyRidesPage> createState() => _MyRidesPageState();
+  State<MyBookingsPage> createState() => _MyBookingsPageState();
 }
 
-class _MyRidesPageState extends State<MyRidesPage> {
+class _MyBookingsPageState extends State<MyBookingsPage> {
+
   Future<void> _handleCancelRide(BuildContext context, String docId, Map<String, dynamic> data) async {
     final String paymentStatus = data['paymentStatus'] ?? 'unpaid';
     final String paymentMethod = data['paymentMethod'] ?? 'Cash';
@@ -61,6 +64,8 @@ class _MyRidesPageState extends State<MyRidesPage> {
     }
   }
 
+
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProviderMethod>(context);
@@ -94,7 +99,7 @@ class _MyRidesPageState extends State<MyRidesPage> {
         stream: FirebaseFirestore.instance
             .collection('bookings')
             .where('passengerId', isEqualTo: userId)
-            .where('status', whereIn: ['pending', 'accepted', 'ongoing'])
+            .where('status', whereIn: ['pending', 'accepted', 'ongoing','completed'])
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -119,10 +124,77 @@ class _MyRidesPageState extends State<MyRidesPage> {
     );
   }
 
+
   Widget _buildActiveRideCard(BuildContext context, String docId, Map<String, dynamic> data) {
     final status = data['status'] ?? 'pending';
     bool isPaid = data['paymentStatus'] == 'paid';
     bool canCancel = status == 'pending' || status == 'accepted';
+
+    if (status == 'completed') {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 20),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.green.shade200),
+        ),
+        child: Stack(
+          children: [
+            // 'X' Button
+            Positioned(
+              right: 8,
+              top: 8,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.grey),
+                onPressed: () async {
+                  // Mark as archived so it disappears from the list
+                  await FirebaseFirestore.instance.collection('bookings').doc(docId).update({
+                    'status': 'archived'
+                  });
+                },
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.check_rounded, color: Colors.green, size: 40),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text("Trip Completed!", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  Text("Total Fare: Rs ${data['fare'] ?? '0'}", style: const TextStyle(color: Colors.grey)),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        final String driverId = data['driverId'] ?? '';
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => RatingScreen(bookingId: docId, driverId: driverId,)));
+                      },
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.orange,
+                          elevation: 0,
+                          foregroundColor: Colors.white),
+                      child: const Text("Rate Your Driver",
+                          style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     // If the ride was just cancelled, don't show the card at all
     if (status == 'cancelled') return const SizedBox.shrink();
@@ -236,9 +308,7 @@ class _MyRidesPageState extends State<MyRidesPage> {
                         const Text("Trip is live", style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
                         const Spacer(),
                         ElevatedButton(
-                          onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("SOS — calling emergency services..."))
-                          ),
+                          onPressed: () => EmergencyService.showSOSDialog(context),
                           style: ElevatedButton.styleFrom(backgroundColor: Colors.red, elevation: 0, shape: const StadiumBorder()),
                           child: const Text("SOS", style: TextStyle(color: Colors.white, fontSize: 12)),
                         ),
@@ -272,6 +342,8 @@ class _MyRidesPageState extends State<MyRidesPage> {
                       ),
                     ),
                   ],
+
+
                 ],
               ),
             ),
@@ -334,4 +406,8 @@ class _MyRidesPageState extends State<MyRidesPage> {
       ),
     );
   }
+
+
 }
+
+

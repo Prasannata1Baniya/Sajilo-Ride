@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 class PlaceSearchDelegate extends SearchDelegate<Map<String, dynamic>?> {
   Future<List<Map<String, dynamic>>>? _searchFuture;
   String _lastQuery = "";
+  Timer? _debounce;
 
   @override
   String get searchFieldLabel => 'Search Drop-off Location...';
@@ -30,18 +31,27 @@ class PlaceSearchDelegate extends SearchDelegate<Map<String, dynamic>?> {
       return const Center(child: Text("Type at least 3 letters to search"));
     }
 
-    // Only trigger a new request if the query string has changed
-    if (_lastQuery != query) {
-      _lastQuery = query;
-      _searchFuture = _performSearch(query);
-    }
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      if (_lastQuery != query) {
+        _lastQuery = query;
+        _searchFuture = _performSearch(query);
+        showSuggestions(context);
+      }
+    });
+
     return _buildSearchResults();
   }
 
   Future<List<Map<String, dynamic>>> _performSearch(String query) async {
+    final encodedQuery = Uri.encodeComponent(query);
     final url = Uri.parse(
-        'https://nominatim.openstreetmap.org/search?q=$query&format=json&limit=5&countrycodes=np');
-    final response = await http.get(url, headers: {'User-Agent': 'com.prasannata.sajilo_ride'});
+        'https://nominatim.openstreetmap.org/search?q=$encodedQuery&format=json&limit=5&countrycodes=np');
+    final response = await http.get(url,
+        headers: {'User-Agent': 'com.prasannata.sajilo_ride'}
+        //headers:{'User-Agent': 'SajiloRideApp_V1'}
+    );
 
     if (response.statusCode == 200) {
       List data = jsonDecode(response.body);
@@ -58,6 +68,9 @@ class PlaceSearchDelegate extends SearchDelegate<Map<String, dynamic>?> {
     return FutureBuilder<List<Map<String, dynamic>>>(
       future: _searchFuture,
       builder: (context, snapshot) {
+        // If we haven't started a search yet, show nothing
+        if (_searchFuture == null) return const SizedBox.shrink();
+
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator.adaptive());
         }

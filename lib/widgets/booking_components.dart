@@ -131,7 +131,7 @@ class NearByRideSelector extends StatelessWidget {
                 backgroundColor: Colors.grey[200],
                 backgroundImage: (currentCar.image.isNotEmpty && currentCar.image.startsWith('http'))
                     ? NetworkImage(currentCar.image)
-                    : const AssetImage('assets/images/default_car.png') as ImageProvider,
+                    : const AssetImage('assets/images/car1.jpg') as ImageProvider,
               ),
               title: Row(
                 children: [

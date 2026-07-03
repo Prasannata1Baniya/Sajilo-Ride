@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
-import 'package:sajilo_ride/screens/passenger/rides_page.dart';
+import 'package:sajilo_ride/screens/passenger/bookings_page.dart';
 
 import '../auth_page/login_page.dart';
 
@@ -32,7 +32,7 @@ class PassengerProfileContent extends StatelessWidget {
                 children: [
                   const CircleAvatar(
                     radius: 50,
-                    backgroundColor: Colors.blueAccent,
+                    backgroundColor: Colors.orange,
                     child: Icon(Icons.person, size: 50, color: Colors.white),
                   ),
                   const SizedBox(height: 15),
@@ -60,7 +60,7 @@ class PassengerProfileContent extends StatelessWidget {
                     title: "My Ride History",
                     subtitle: "View your past trips and receipts",
                     onTap: () {
-                      Navigator.of(context).push(MaterialPageRoute(builder: (_)=>MyRidesPage()));
+                      Navigator.of(context).push(MaterialPageRoute(builder: (_)=>MyBookingsPage()));
                     },
                   ),
                   _buildProfileTile(
@@ -119,8 +119,8 @@ class PassengerProfileContent extends StatelessWidget {
       onTap: onTap,
       leading: Container(
         padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(10)),
-        child: Icon(icon, color: Colors.blueAccent),
+        decoration: BoxDecoration(color: Colors.orange.shade50, borderRadius: BorderRadius.circular(10)),
+        child: Icon(icon, color: Colors.orangeAccent),
       ),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
       subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),

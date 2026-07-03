@@ -25,10 +25,12 @@ class _ActiveRideContentState extends State<ActiveRideContent> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance.collection('bookings').doc(widget.bookingId).snapshots(),
+      stream: FirebaseFirestore.instance.collection('bookings').doc(
+          widget.bookingId).snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          return const Scaffold(
+              body: Center(child: CircularProgressIndicator()));
         }
 
         final bookingData = snapshot.data!.data() as Map<String, dynamic>;
@@ -36,23 +38,30 @@ class _ActiveRideContentState extends State<ActiveRideContent> {
 
         if (status == 'cancelled') {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Ride Cancelled by Passenger")));
+            ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Ride Cancelled by Passenger")));
             Navigator.pop(context);
           });
         }
 
         _currentStatus = status;
 
-        final double pickupLat = (widget.bookingData['pickupLat'] ?? 27.7172).toDouble();
-        final double pickupLng = (widget.bookingData['pickupLng'] ?? 85.3240).toDouble();
-        final double dropoffLat = (widget.bookingData['dropoffLat'] ?? 27.7172).toDouble();
-        final double dropoffLng = (widget.bookingData['dropoffLng'] ?? 85.3240).toDouble();
+        final double pickupLat = (widget.bookingData['pickupLat'] ?? 27.7172)
+            .toDouble();
+        final double pickupLng = (widget.bookingData['pickupLng'] ?? 85.3240)
+            .toDouble();
+        final double dropoffLat = (widget.bookingData['dropoffLat'] ?? 27.7172)
+            .toDouble();
+        final double dropoffLng = (widget.bookingData['dropoffLng'] ?? 85.3240)
+            .toDouble();
 
         return Scaffold(
           backgroundColor: const Color(0xFFF5F7F9),
           appBar: AppBar(
-            title: Text(_currentStatus == 'accepted' ? "Navigate to Pickup" : "Trip Ongoing"),
-            backgroundColor: Colors.black,
+            title: Text(_currentStatus == 'accepted'
+                ? "Navigate to Pickup"
+                : "Trip Ongoing"),
+            backgroundColor: Colors.orange.shade700,
             foregroundColor: Colors.white,
           ),
           body: Stack(
@@ -71,11 +80,13 @@ class _ActiveRideContentState extends State<ActiveRideContent> {
                     markers: [
                       Marker(
                         point: LatLng(pickupLat, pickupLng),
-                        child: const Icon(Icons.my_location, color: Colors.green, size: 40),
+                        child: const Icon(
+                            Icons.my_location, color: Colors.green, size: 40),
                       ),
                       Marker(
                         point: LatLng(dropoffLat, dropoffLng),
-                        child: const Icon(Icons.location_on, color: Colors.red, size: 40),
+                        child: const Icon(
+                            Icons.location_on, color: Colors.red, size: 40),
                       ),
                     ],
                   ),
@@ -89,26 +100,36 @@ class _ActiveRideContentState extends State<ActiveRideContent> {
                   padding: const EdgeInsets.all(24),
                   decoration: const BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-                    boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
+                    borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(30)),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black12, blurRadius: 10)
+                    ],
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Row(
                         children: [
-                          const CircleAvatar(radius: 25, backgroundColor: Colors.orange, child: Icon(Icons.person, color: Colors.white)),
+                          const CircleAvatar(radius: 25, backgroundColor: Colors
+                              .orange, child: Icon(
+                              Icons.person, color: Colors.white)),
                           const SizedBox(width: 15),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text("Passenger Request", style: TextStyle(color: Colors.grey)),
-                                Text(widget.bookingData['model'] ?? 'Ride', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                const Text("Passenger Request",
+                                    style: TextStyle(color: Colors.grey)),
+                                Text(widget.bookingData['model'] ?? 'Ride',
+                                    style: const TextStyle(fontSize: 18,
+                                        fontWeight: FontWeight.bold)),
                               ],
                             ),
                           ),
-                          Text("Rs. ${widget.bookingData['fare'] ?? '0'}", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                          Text("Rs. ${widget.bookingData['fare'] ?? '0'}",
+                              style: const TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold)),
                         ],
                       ),
                       const SizedBox(height: 25),
@@ -117,13 +138,20 @@ class _ActiveRideContentState extends State<ActiveRideContent> {
                         height: 55,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: _currentStatus == 'accepted' ? Colors.blue : Colors.green,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            backgroundColor: _currentStatus == 'accepted'
+                                ? Colors.blue
+                                : Colors.green,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
                           ),
                           onPressed: () => _updateTripStatus(),
                           child: Text(
-                            _currentStatus == 'accepted' ? "ARRIVED & START TRIP" : "ARRIVED & COMPLETE TRIP",
-                            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                            _currentStatus == 'accepted'
+                                ? "ARRIVED & START TRIP"
+                                : "ARRIVED & COMPLETE TRIP",
+                            style: const TextStyle(color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
@@ -137,8 +165,104 @@ class _ActiveRideContentState extends State<ActiveRideContent> {
       },
     );
   }
-
   Future<void> _updateTripStatus() async {
+    final messenger = ScaffoldMessenger.of(context);
+
+    // 1. Handle OTP Verification for starting the trip
+    if (_currentStatus == 'accepted') {
+      final otpController = TextEditingController();
+
+      final bool? confirmed = await showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        builder: (context) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            top: 20, left: 20, right: 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("Verify Passenger", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
+              TextField(
+                controller: otpController,
+                keyboardType: TextInputType.number,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  labelText: "Enter 4-digit OTP",
+                  labelStyle: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+                  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.orange, width: 1.0)),
+                  focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.orange, width: 2.0)),
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                 if (otpController.text.trim() == widget.bookingData['otp'].toString().trim()) {
+                    Navigator.pop(context, true);
+                  } else {
+                    // Use the captured messenger here
+                    messenger.showSnackBar(const SnackBar(
+                        content: Text("Invalid OTP"), backgroundColor: Colors.red));
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text("START TRIP", style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      );
+
+      // If OTP was not confirmed, stop the function here
+      if (confirmed != true) return;
+    }
+
+    // 2. Perform the Firestore Update
+    final String nextStatus = _currentStatus == 'accepted' ? 'ongoing' : 'completed';
+
+    try {
+      Map<String, dynamic> updateData = {'status': nextStatus};
+
+      if (nextStatus == 'ongoing') {
+        updateData['startedAt'] = FieldValue.serverTimestamp();
+      } else if (nextStatus == 'completed') {
+        updateData['completedAt'] = FieldValue.serverTimestamp();
+        // Handle payment status
+        if (widget.bookingData['paymentStatus'] != 'paid') {
+          updateData['paymentStatus'] = 'cash_collected';
+        }
+      }
+
+      await FirebaseFirestore.instance.collection('bookings').doc(widget.bookingId).update(updateData);
+
+      // Optional: add a success message
+      if (mounted && nextStatus == 'completed') {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Trip Completed Successfully!")));
+      }
+    } catch (e) {
+      debugPrint("Status Update Error: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
+      }
+    }
+  }
+}
+
+
+
+  /*Future<void> _updateTripStatus() async {
 
 
     if (_currentStatus == 'accepted') {
@@ -166,13 +290,33 @@ class _ActiveRideContentState extends State<ActiveRideContent> {
                 autofocus: true,
                 decoration: const InputDecoration(
                   labelText: "Enter 4-digit OTP",
-                  focusColor: Colors.orange,
+                  labelStyle: TextStyle(color: Colors.orange,fontWeight: FontWeight.bold),
+                  //focusColor: Colors.orange,
+
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.orange, width: 1.0),
+                  ),
+
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.orange, width: 2.0),
+                  ),
+
                   border: OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () => Navigator.pop(context, true),
+                onPressed: () async{
+                  //Navigator.pop(context, true);
+                  if (otpController.text.trim() == widget.bookingData['otp'].toString()) {
+                    // 3. Close the modal and send 'true' back to the calling function
+                    Navigator.pop(context, true);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Invalid OTP"),
+                        backgroundColor: Colors.red));
+                  }
+                },
+
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
                   foregroundColor: Colors.white,
@@ -233,6 +377,15 @@ class _ActiveRideContentState extends State<ActiveRideContent> {
         'status': nextStatus,
       };
 
+      if (nextStatus == 'ongoing') {
+        updateData['startedAt'] = FieldValue.serverTimestamp();
+      } else if (nextStatus == 'completed') {
+        updateData['completedAt'] = FieldValue.serverTimestamp();
+        if (widget.bookingData['paymentStatus'] != 'paid') {
+          updateData['paymentStatus'] = 'cash_collected';
+        }
+      }
+
       if (nextStatus == 'completed') {
         updateData['completedAt'] = FieldValue.serverTimestamp();
 
@@ -247,8 +400,8 @@ class _ActiveRideContentState extends State<ActiveRideContent> {
     } catch (e) {
       debugPrint("Status Update Error: $e");
     }
-  }
-}
+  }*/
+
 
 
 // --- LOGIC: OTP VERIFICATION + STATUS UPDATE ---

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../data/model/car_model.dart';
@@ -85,16 +86,35 @@ class _CarDriverDetailPageState extends State<CarDriverDetailPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Rating Row
-                        Row(
-                          children: [
-                            const Icon(Icons.star, color: Colors.amber, size: 18),
-                            const SizedBox(width: 4),
-                            Text(
-                              widget.car.rating.toString(),
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                            ),
-                            const Text("(120+ Rides)", style: TextStyle(color: Colors.grey, fontSize: 12)),
-                          ],
+                        StreamBuilder<DocumentSnapshot>(
+                          stream: FirebaseFirestore.instance
+                              .collection('drivers')
+                              .doc(widget.car.driverId)
+                              .snapshots(),
+                          builder: (context, snapshot) {
+                            // Show a placeholder or the old value while loading
+                            if (!snapshot.hasData || !snapshot.data!.exists) {
+                              return Row(children: [const Icon(Icons.star, color: Colors.amber, size: 18),
+                                Text(widget.car.rating.toString())]);
+                            }
+
+                            var data = snapshot.data!.data() as Map<String, dynamic>;
+                            double rating = (data['averageRating'] ?? 0.0).toDouble();
+                            // You can also fetch total rides if you store that in Firestore
+                            var totalRides = data['totalRides'] ?? 0;
+
+                            return Row(
+                              children: [
+                                const Icon(Icons.star, color: Colors.amber, size: 18),
+                                const SizedBox(width: 4),
+                                Text(
+                                  rating.toStringAsFixed(1),
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                ),
+                                Text(" ($totalRides+ Rides)", style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                              ],
+                            );
+                          },
                         ),
                         const SizedBox(height: 10),
                         Row(

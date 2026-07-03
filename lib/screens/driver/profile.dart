@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
+import 'package:sajilo_ride/screens/driver/earning.dart';
 import '../auth_page/login_page.dart';
 import 'car_management.dart';
 
@@ -24,7 +25,7 @@ class DriverProfileContent extends StatelessWidget {
         children: [
           // 1. HEADER SECTION (User Info)
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+            padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 15),
             width: double.infinity,
             decoration: BoxDecoration(
               color: Colors.grey[50],
@@ -78,7 +79,7 @@ class DriverProfileContent extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>  CarManagementContent(),
+                        builder: (context) =>  DriversEarningContent(),
                       ),
                     );
                   },
@@ -102,7 +103,7 @@ class DriverProfileContent extends StatelessWidget {
                 const Divider(height: 40),
 
                 // 3. LOGOUT BUTTON
-                ListTile(
+                /*ListTile(
                   onTap: () => _showLogoutDialog(context, authProvider),
                   leading: const Icon(Icons.logout, color: Colors.red),
                   title: const Text(
@@ -110,7 +111,25 @@ class DriverProfileContent extends StatelessWidget {
                     style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
                   ),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.red),
+                ),*/
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => _showLogoutDialog(context, authProvider),
+                      icon: const Icon(Icons.logout, color: Colors.red),
+                      label: const Text("Logout", style: TextStyle(color: Colors.red)),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.red),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ),
                 ),
+
+
               ],
             ),
           ),
