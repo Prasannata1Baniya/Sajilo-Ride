@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
 import 'package:sajilo_ride/screens/passenger/bookings_page.dart';
+import 'package:sajilo_ride/screens/shared/help_support_page.dart';
 
 import '../auth_page/login_page.dart';
 
@@ -79,7 +80,9 @@ class PassengerProfileContent extends StatelessWidget {
                     icon: Icons.help_outline,
                     title: "Help & Support",
                     subtitle: "Get help with your rides",
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HelpSupportPage()));
+                    },
                   ),
                 ],
               ),
