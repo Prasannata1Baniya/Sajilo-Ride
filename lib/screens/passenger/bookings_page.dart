@@ -26,40 +26,111 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
     try {
       bool confirm = await showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Text("Cancel Ride?", style: TextStyle(fontWeight: FontWeight.bold)),
-          content: Text(isPaid
-              ? "This ride was paid via $paymentMethod. A full refund will be automatically initiated to your account."
-              : "Are you sure you want to cancel this ride?"),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("GO BACK")),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text("CANCEL RIDE", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+        builder: (context) =>
+            Dialog(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28)),
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Decorative Icon
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                          Icons.warning_amber_rounded, color: Colors.red,
+                          size: 40),
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      "Cancel Trip?",
+                      style: TextStyle(
+                          fontSize: 22, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      isPaid
+                          ? "This ride was paid via $paymentMethod. A full refund will be automatically initiated to your account."
+                          : "Are you sure you want to cancel this ride? This action cannot be undone.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          fontSize: 15, color: Colors.grey.shade700),
+                    ),
+                    const SizedBox(height: 32),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                            ),
+                            child: const Text("Go Back",
+                                style: TextStyle(fontWeight: FontWeight.bold,color: Colors.grey)),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                            ),
+                            child: const Text("Cancel Ride",
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ],
-        ),
       ) ?? false;
 
       if (!confirm) return;
 
-      await FirebaseFirestore.instance.collection('bookings').doc(docId).update({
-        'status': 'cancelled',
-        'paymentStatus': isPaid ? 'refund_initiated' : 'unpaid',
-        'cancelledAt': FieldValue.serverTimestamp(),
-      });
+      try {
+        await FirebaseFirestore.instance
+            .collection('bookings')
+            .doc(docId)
+            .update(
+            {
+              'status': 'cancelled',
+              'paymentStatus': isPaid ? 'refund_initiated' : 'unpaid',
+              'cancelledAt': FieldValue.serverTimestamp(),
+            });
 
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(isPaid ? "Refund Initiated to $paymentMethod" : "Ride Cancelled Successfully"),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Colors.redAccent,
-          ),
-        );
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(isPaid
+                  ? "Refund Initiated to $paymentMethod"
+                  : "Ride Cancelled Successfully"),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Failed to cancel ride. Please try again.")),
+          );
+        }
+        debugPrint("Firebase Update Error: $e");
       }
-    } catch (e) {
+    }catch (e) {
       debugPrint("Error: $e");
     }
   }
@@ -99,7 +170,7 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
         stream: FirebaseFirestore.instance
             .collection('bookings')
             .where('passengerId', isEqualTo: userId)
-            .where('status', whereIn: ['pending', 'accepted', 'ongoing','completed'])
+            .where('status', whereIn: ['pending', 'accepted', 'ongoing','completed', 'searching'])
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -129,6 +200,67 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
     final status = data['status'] ?? 'pending';
     bool isPaid = data['paymentStatus'] == 'paid';
     bool canCancel = status == 'pending' || status == 'accepted';
+
+    if (status == 'searching') {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 20),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.orange.shade50,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.orange.shade200),
+        ),
+        child: Column(
+          children: [
+            Align(
+              alignment: Alignment.topRight,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.orange),
+                padding: EdgeInsets.zero, // Remove extra padding
+                constraints: const BoxConstraints(), // Shrink the hit area
+                onPressed: () async {
+                  await FirebaseFirestore.instance.collection('bookings').doc(docId).update({
+                    'status': 'archived'
+                  });
+                },
+              ),
+            ),
+            const Row(
+              children: [
+                CircularProgressIndicator(color: Colors.orange, strokeWidth: 2),
+                SizedBox(width: 15),
+                Expanded(
+                  child: Text(
+                    "Your previous driver was unavailable. Search again in Home page...",
+                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton.icon(
+              icon: Icon(Icons.home,color: Colors.white,),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.all(15),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                ),
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+
+              ),
+              onPressed: () {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const AppShell(userRole: UserRole.passenger, initialIndex: 0)),
+                      (route) => false,
+                );
+              },
+              label: const Text("Search Again",style: TextStyle(fontWeight: FontWeight.bold),),
+            ),
+          ],
+        ),
+      );
+    }
 
     if (status == 'completed') {
       return Container(
@@ -274,7 +406,8 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
                       onPressed: () async {
                         final messenger = ScaffoldMessenger.of(context);
                         final driverId = data['driverId'];
-                        String? phone = data['phone'];
+                        String? phone = data['phone'] ?? 'Not Provided';
+
                         if (phone == null || phone.isEmpty) {
                           final driverDoc = await FirebaseFirestore.instance.collection('drivers').doc(driverId).get();
                           phone = driverDoc.data()?['phone'];
@@ -406,8 +539,6 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
       ),
     );
   }
-
-
 }
 
 

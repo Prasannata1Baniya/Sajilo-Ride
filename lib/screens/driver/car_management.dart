@@ -99,7 +99,6 @@ class _CarManagementContentState extends State<CarManagementContent> {
     setState(() => _isLoading = true);
 
     try {
-      final authProvider = Provider.of<AuthProviderMethod>(context, listen: false);
 
       // 🛠️ 1. Check if system location services are enabled
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -131,12 +130,19 @@ class _CarManagementContentState extends State<CarManagementContent> {
         finalImageUrl = await _uploadToCloudinary();
       }
 
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(driverId)
+          .get();
+
+      String actualName = (userDoc.data() as Map<String, dynamic>)['name'] ?? 'Unknown Driver';
+
       await FirebaseFirestore.instance.collection('drivers').doc(driverId).set({
         'location': {'geohash': hash, 'geopoint': GeoPoint(position.latitude, position.longitude)},
         'latitude': position.latitude, 'longitude': position.longitude,
         'model': _modelController.text.trim(),
         'carNumber': _plateController.text.trim(),
-        'driverName': authProvider.user?.displayName ?? 'Unknown Driver',
+        'driverName': actualName,
         'phone': _numController.text.trim(),
         'image': finalImageUrl,
         'driverId': driverId,

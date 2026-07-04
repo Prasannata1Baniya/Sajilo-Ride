@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../widgets/custom_expansion_tile.dart';
+
 class HelpSupportScreen extends StatelessWidget {
   const HelpSupportScreen({super.key});
 
@@ -24,9 +26,14 @@ class HelpSupportScreen extends StatelessWidget {
             const SizedBox(height: 20),
 
             // Custom Expansion Tiles
-            _buildCustomExpansionTile("How to cancel a ride?", "Go to 'My Rides', select the active ride, and tap the 'Cancel Ride' button."),
-            _buildCustomExpansionTile("Is my data safe?", "Yes, we prioritize your privacy. Your location is tracked only for safety reasons while on a trip."),
-            _buildCustomExpansionTile("How can I pay?", "Currently, we support 'Cash on Arrival'. Stay tuned for eSewa integration!"),
+            CustomExpansionTile(
+                title: "How to cancel a ride?",
+                content: "Go to 'My Rides', select the active ride, and tap the 'Cancel Ride' button."),
+            CustomExpansionTile(
+                title:"Is my data safe?",
+                content:"Yes, we prioritize your privacy. Your location is tracked only for safety reasons while on a trip."),
+            CustomExpansionTile(title: "How can I pay?",
+                content: "Currently, we support 'Cash on Arrival'. Stay tuned for eSewa integration!"),
 
             const SizedBox(height: 40),
 
@@ -70,21 +77,6 @@ class HelpSupportScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCustomExpansionTile(String title, String content) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
-      ),
-      child: ExpansionTile(
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-        childrenPadding: const EdgeInsets.all(16),
-        children: [Text(content, style: const TextStyle(color: Colors.grey))],
-      ),
-    );
-  }
 
   Future<void> _launchWhatsApp() async {
     final Uri url = Uri.parse("https://wa.me/977XXXXXXXXXX");

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../widgets/custom_expansion_tile.dart';
+
 class HelpSupportScreen extends StatelessWidget {
   const HelpSupportScreen({super.key});
 
@@ -24,21 +26,21 @@ class HelpSupportScreen extends StatelessWidget {
             const SizedBox(height: 20),
 
             // Driver FAQ Content
-            _buildCustomExpansionTile(
-                "How do I receive ride requests?",
-                "Ensure your status is set to 'Online'. You will receive a notification and a pop-up on your screen when a nearby passenger requests a ride."
+            CustomExpansionTile(
+                title: "How do I receive ride requests?",
+                content: "Ensure your status is set to 'Online'. You will receive a notification and a pop-up on your screen when a nearby passenger requests a ride."
             ),
-            _buildCustomExpansionTile(
-                "What if the passenger doesn't show up?",
-                "Wait at the pickup location for at least 5-10 minutes. If the passenger is unreachable, you can cancel the ride with the reason 'Passenger not found'."
+            CustomExpansionTile(
+               title: "What if the passenger doesn't show up?",
+                content: "Wait at the pickup location for at least 5-10 minutes. If the passenger is unreachable, you can cancel the ride with the reason 'Passenger not found'."
             ),
-            _buildCustomExpansionTile(
-                "How do I update my vehicle documents?",
-                "Go to your 'Profile' section, tap on 'Vehicle Documents', and upload clear photos of your license and registration for verification."
+            CustomExpansionTile(
+               title: "How do I update my vehicle documents?",
+                content:"Go to your 'Profile' section, tap on 'Vehicle Documents', and upload clear photos of your license and registration for verification."
             ),
-            _buildCustomExpansionTile(
-                "When will I get paid?",
-                "For Cash rides, you collect the fare directly. For digital payments, earnings are processed and settled to your linked account according to our payout schedule."
+            CustomExpansionTile(
+                title:"When will I get paid?",
+                content:"For Cash rides, you collect the fare directly. For digital payments, earnings are processed and settled to your linked account according to our payout schedule."
             ),
             const SizedBox(height: 40),
 
@@ -82,21 +84,6 @@ class HelpSupportScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCustomExpansionTile(String title, String content) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
-      ),
-      child: ExpansionTile(
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-        childrenPadding: const EdgeInsets.all(16),
-        children: [Text(content, style: const TextStyle(color: Colors.grey))],
-      ),
-    );
-  }
 
   Future<void> _launchWhatsApp() async {
     final Uri url = Uri.parse("https://wa.me/977XXXXXXXXXX");

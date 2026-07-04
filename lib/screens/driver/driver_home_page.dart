@@ -95,6 +95,7 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
         stream: FirebaseFirestore.instance
             .collection('bookings')
             .where('status', isEqualTo: 'pending')
+            .where('driverId', isEqualTo: driverId)
             //.orderBy('timestamp', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
@@ -229,7 +230,6 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
             Row(
               children: [
 
-
                 DriverCarAvatarWidget(driverId: data['driverId'] ?? 'unknown'),
                 const SizedBox(width: 15),
                 Expanded(
@@ -302,7 +302,7 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
                 ),
                 const SizedBox(width: 10),
                 OutlinedButton(
-                         onPressed: () => _declineRide(context, docId),
+                  onPressed: _isAccepting ? null : () => _declineRide(context, docId, driverId),
                   style: OutlinedButton.styleFrom(shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                   foregroundColor: Colors.red),
@@ -316,18 +316,27 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
     );
   }
 
-  Future<void> _declineRide(BuildContext context, String docId) async {
+   Future<void> _declineRide(BuildContext context, String bookingId, String driverId) async {
     try {
-      //Simply mark as declined
-      await FirebaseFirestore.instance.collection('bookings').doc(docId).update({
-        'status': 'declined',
-        // optional: Adding a field to track who declined it
-       // 'declinedBy': FirebaseFirestore.instance.collection('drivers').doc().id,
+      // We use a transaction to ensure data integrity
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        DocumentReference bookingRef = FirebaseFirestore.instance.collection('bookings').doc(bookingId);
+
+        transaction.update(bookingRef, {
+          // 1. Mark that this specific driver rejected it
+          'rejected_by': FieldValue.arrayUnion([driverId]),
+
+          // Set status back to 'searching' so that dispatch logic tries again
+          'status': 'searching',
+
+          // Remove current driver reference if it exists
+          'driverId': FieldValue.delete(),
+        });
       });
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Ride declined"), backgroundColor: Colors.redAccent),
+          const SnackBar(content: Text("Ride declined by you..."), backgroundColor: Colors.orange),
         );
       }
     } catch (e) {

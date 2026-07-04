@@ -48,10 +48,10 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
     super.initState();
     _getCurrentLocation();
     _listenToLiveDrivers();
-    _checkForActiveBooking();
+    //_cheXckForActiveBooking();
   }
 
-  Future<void> _checkForActiveBooking() async {
+  /*Future<void> _checkForActiveBooking() async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) return;
 
@@ -63,6 +63,20 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
         .get();
 
     if (activeBooking.docs.isNotEmpty && mounted) {
+      if (ModalRoute.of(context)?.isCurrent == true) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => BookingConfirmContent(
+             car: CarModel.fromMap(bookingData, bookingDoc.id), // Provide an empty/default model
+              userRole: UserRole.passenger,        // Provide a default enum value
+              fare: fare ?? 0.0,                   // Provide 0.0 if fare is null
+              distance: distance ?? 0.0,           // Provide 0.0 if distance is null
+            ),
+          ),
+        );
+      }
+
       final bookingDoc = activeBooking.docs.first;
       final bookingData = bookingDoc.data();
 
@@ -80,7 +94,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
         ),
       );
     }
-  }
+  }*/
 
   @override
   void dispose() {
@@ -274,14 +288,27 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
   }
 
   Future<void> _confirmBooking({String paymentStatus = "unpaid", String method = "Cash"}) async {
+    if (selectedCar == null) {
+      _showErrorSnackBar("Please select a driver first.");
+      return;
+    }
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) {
+      _showErrorSnackBar("User not logged in.");
+      return;
+    }
+
     try {
-      final userId = FirebaseAuth.instance.currentUser?.uid;
       final String targetedDriverId = selectedCar!.driverId;
       final String finalFareString = fare.toStringAsFixed(0);
 
       DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
-      String passengerPhone = userDoc.get('phone') ?? 'N/A';
-
+      //String passengerPhone = userDoc.get('phone') ?? 'N/A';
+      String passengerPhone = 'N/A';
+      if (userDoc.exists) {
+        Map<String, dynamic>? data = userDoc.data() as Map<String, dynamic>?;
+        passengerPhone = data?['phone'] ?? 'N/A';
+      }
       await FirebaseFirestore.instance.collection('bookings').add({
         'passengerId': userId,
         'passengerPhone': passengerPhone,
@@ -300,6 +327,9 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
         'timestamp': FieldValue.serverTimestamp(),
         'otp': (1000 + (DateTime.now().millisecondsSinceEpoch % 9000)).toString(),
       });
+
+      debugPrint("DEBUG: Checking user document for ID: $userId");
+      debugPrint("DEBUG: Data found: ${userDoc.data()}");
 
       await _sendNotificationToDriver(targetedDriverId, _pickupAddress, finalFareString);
 
