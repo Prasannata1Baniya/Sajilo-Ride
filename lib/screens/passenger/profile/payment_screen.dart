@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class PaymentScreen extends StatefulWidget {
@@ -10,6 +12,24 @@ class PaymentScreen extends StatefulWidget {
 class _PaymentScreenState extends State<PaymentScreen> {
   // 1. Default to Cash
   String _selectedMethod = 'Cash';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPaymentPreference();
+  }
+
+  Future<void> _loadPaymentPreference() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      if (doc.exists && doc.data()!.containsKey('preferredPayment')) {
+        setState(() {
+          _selectedMethod = doc['preferredPayment'];
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,9 +63,40 @@ class _PaymentScreenState extends State<PaymentScreen> {
               width: double.infinity,
               height: 55,
               child: ElevatedButton(
-                onPressed: () {
-                  // TODO: Save to Firestore/Provider
-                  Navigator.pop(context, _selectedMethod);
+                onPressed: () async {
+                  final user = FirebaseAuth.instance.currentUser;
+
+                  if (user != null) {
+                    // 1. Show a loading indicator so the user knows it's saving
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (_) => const Center(child: CircularProgressIndicator()),
+                    );
+
+                    try {
+                      // 2. Save the preference to the user's document in Firestore
+                      await FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(user.uid)
+                          .update({'preferredPayment': _selectedMethod});
+
+                      // 3. Close the loading dialog
+                      if (context.mounted) Navigator.pop(context);
+
+                      // 4. Return the selected method to the previous screen
+                      if (context.mounted) Navigator.pop(context, _selectedMethod);
+
+                    } catch (e) {
+                      if (context.mounted) Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Failed to save preference")),
+                      );
+                    }
+                  } else {
+                    // If not logged in, just go back with the value
+                    Navigator.pop(context, _selectedMethod);
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,

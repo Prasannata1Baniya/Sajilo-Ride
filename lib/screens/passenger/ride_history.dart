@@ -113,7 +113,7 @@ class RideHistoryContent extends StatelessWidget {
                   ],
                 ),
                 Text(
-                  "Rs ${ride['fare']}",
+                  isCancelled ? "N/A" : "Rs ${ride['fare']}",
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black87),
                 ),
               ],

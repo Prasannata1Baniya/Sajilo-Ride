@@ -182,10 +182,15 @@ class AuthProviderMethod extends ChangeNotifier {
   Future<void> signOut() async {
     if (user != null) {
       try {
-        // Delete token from 'users' collection to match save logic
-        await _firestore.collection('users').doc(user!.uid).update({
-          'deviceToken': FieldValue.delete(),
-        });
+        if (user != null) {
+          // 1. Remove token from Firestore
+          await _firestore.collection('users').doc(user!.uid).update({
+            'deviceToken': FieldValue.delete(),
+          });
+
+          // 2. Also revoke the token on FCM servers
+          await FirebaseMessaging.instance.deleteToken();
+        }
       } catch (e) {
         debugPrint("Error clearing token on sign-out: $e");
       }
