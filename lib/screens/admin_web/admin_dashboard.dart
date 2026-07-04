@@ -152,8 +152,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                             final String email = driver['email'] ?? 'N/A';
                             final String phone = driver['phone'] ?? 'N/A';
                             final String licenseUrl = driver['licenseUrl'] ?? '';
+                            final String selfieUrl = driver['selfieUrl'] ?? '';
 
-                            return _buildDriverVerificationCard(uid, name, email, phone, licenseUrl);
+                            return _buildDriverVerificationCard(uid, name, email, phone, licenseUrl,selfieUrl);
                           },
                         );
                       },
@@ -183,7 +184,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     );
   }
 
-  Widget _buildDriverVerificationCard(String uid, String name, String email, String phone, String licenseUrl) {
+  Widget _buildDriverVerificationCard(String uid, String name, String email, String phone, String licenseUrl,String selfieUrl) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -198,18 +199,33 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         children: [
           // 1. Cloudinary License Image Viewer Section
           Expanded(
-            child: Container(
-              color: Colors.grey[200],
-              width: double.infinity,
-              child: licenseUrl.isNotEmpty
-                  ? Image.network(
-                licenseUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Center(child: Icon(Icons.broken_image, size: 48, color: Colors.black38));
-                },
-              )
-                  : const Center(child: Text("No license image uploaded.", style: TextStyle(color: Colors.black38))),
+            child: GestureDetector(
+              onTap: () => _showLicenseInspector(context, licenseUrl,selfieUrl, name),
+              child: Container(
+                color: Colors.grey[200],
+                width: double.infinity,
+                child: Stack(
+                  children: [
+                    licenseUrl.isNotEmpty
+                        ? Image.network(
+                      licenseUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Center(child: Icon(Icons.broken_image, size: 48, color: Colors.black38));
+                      },
+                    )
+                        : const Center(child: Text("No license image uploaded.", style: TextStyle(color: Colors.black38))),
+
+                    const Positioned(
+                      bottom: 8,
+                      child: Chip(
+                        avatar: Icon(Icons.zoom_in, size: 16),
+                        label: Text("Click to Inspect"),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
 
@@ -270,6 +286,80 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   ],
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  void _showLicenseInspector(BuildContext context, String licenseUrl, String selfieUrl, String driverName) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: SizedBox(
+          width: 800,
+          height: 600,
+          child: Column(
+            children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text("Verification: $driverName",
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              ),
+
+              // Side-by-Side Comparison
+              Expanded(
+                child: Row(
+                  children: [
+                    _buildInspectorPanel("Driver License", licenseUrl),
+                    const VerticalDivider(width: 1),
+                    _buildInspectorPanel("Selfie Check", selfieUrl),
+                  ],
+                ),
+              ),
+
+              // Close Button
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue.shade200,
+                    foregroundColor: Colors.black87,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("CLOSE"),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInspectorPanel(String title, String imageUrl) {
+    return Expanded(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          Expanded(
+            child: InteractiveViewer(
+              panEnabled: true,
+              minScale: 0.5,
+              maxScale: 4,
+              child: Image.network(imageUrl, fit: BoxFit.contain),
             ),
           ),
         ],

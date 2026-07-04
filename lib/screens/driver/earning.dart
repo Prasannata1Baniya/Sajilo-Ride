@@ -62,13 +62,24 @@ class DriversEarningContent extends StatelessWidget {
               // 1. TOTAL SUMMARY HEADER
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(30),
-                color: Colors.black,
+                margin: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.orange.shade700, Colors.orange.shade400],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(color: Colors.orange.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8))
+                  ],
+                ),
                 child: Column(
                   children: [
                     const Text(
                       "Total Balance",
-                      style: TextStyle(color: Colors.white70, fontSize: 16),
+                      style: TextStyle(color: Colors.white, fontSize: 16),
                     ),
                     const SizedBox(height: 10),
                     Text(
@@ -82,7 +93,7 @@ class DriversEarningContent extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                       "${snapshot.data!.docs.length} ride${snapshot.data!.docs.length == 1 ? '' : 's'} completed",
-                      style: const TextStyle(color: Colors.white54, fontSize: 13),
+                      style: const TextStyle(color: Colors.white54, fontSize: 13,fontWeight: FontWeight.w500),
                     ),
                   ],
                 ),
@@ -118,41 +129,38 @@ class DriversEarningContent extends StatelessWidget {
                         ? DateFormat('MMM dd, yyyy - hh:mm a').format(date)
                         : "Date unavailable";
 
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 6),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                    return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade100),
+                      ),
                       child: ListTile(
-                        leading: const CircleAvatar(
-                          backgroundColor: Colors.green,
+                        /*leading:  CircleAvatar(
+                          backgroundColor: Colors.green.shade50,
                           child: Icon(Icons.check, color: Colors.white),
+                        ),*/
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        leading: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(color: Colors.green.shade50, borderRadius: BorderRadius.circular(12)),
+                          child: const Icon(Icons.currency_rupee, color: Colors.green),
                         ),
                         title: Text(
                           data['model'] ?? "Ride",
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        subtitle:Text(dateDisplay, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                        trailing:Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text(
-                              "Payment: ${data['paymentMethod'] ?? 'Cash'}",
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                            Text(
-                              dateDisplay,
-                              style: const TextStyle(
-                                  fontSize: 11, color: Colors.grey),
-                            ),
+                            Text(priceDisplay, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 16)),
+                            Text(data['paymentMethod'] ?? 'Cash', style: const TextStyle(fontSize: 10, color: Colors.orange)),
                           ],
                         ),
-                        trailing: Text(
-                          priceDisplay,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green,
-                              fontSize: 15),
-                        ),
+
                         isThreeLine: true,
                       ),
                     );

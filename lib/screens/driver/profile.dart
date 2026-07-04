@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
 import 'package:sajilo_ride/screens/driver/earning.dart';
+import 'package:sajilo_ride/screens/driver/profile/app_settings_screen.dart';
 import '../auth_page/login_page.dart';
 import 'car_management.dart';
 import 'package:sajilo_ride/screens/shared/help_support_page.dart';
@@ -54,6 +56,31 @@ class DriverProfileContent extends StatelessWidget {
 
           const SizedBox(height: 20),
 
+          FutureBuilder<DocumentSnapshot>(
+            future: FirebaseFirestore.instance.collection('drivers').doc(user?.uid).get(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) return const CircularProgressIndicator();
+
+              final data = snapshot.data!.data() as Map<String, dynamic>;
+              final rating = (data['averageRating'] ?? 0.0).toDouble();
+
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(color: Colors.amber.shade50, borderRadius: BorderRadius.circular(20)),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.star, color: Colors.amber, size: 20),
+                    const SizedBox(width: 5),
+                    Text("${rating.toStringAsFixed(1)} / 5.0",
+                        style: TextStyle(color: Colors.amber.shade800, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              );
+            },
+          ),
+
+
           // 2. MENU OPTIONS
           Expanded(
             child: ListView(
@@ -86,21 +113,17 @@ class DriverProfileContent extends StatelessWidget {
                   },
                 ),
                 _buildProfileOption(
-                  icon: Icons.payment,
-                  title: "Payment Methods",
-                  onTap: () {},
-                ),
-                _buildProfileOption(
                   icon: Icons.help_outline,
                   title: "Support & Help",
                   onTap: () {
                     Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HelpSupportPage(isDriver: true)));
                   },
                 ),
+
                 _buildProfileOption(
                   icon: Icons.settings,
                   title: "App Settings",
-                  onTap: () {},
+                  onTap: ()=> Navigator.push(context, MaterialPageRoute(builder: (context) =>  AppSettingsScreen(),),),
                 ),
 
                 const Divider(height: 40),

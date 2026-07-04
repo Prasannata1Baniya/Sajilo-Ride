@@ -22,6 +22,24 @@ class AuthProviderMethod extends ChangeNotifier {
     });
   }
 
+  double _driverRating = 0.0;
+  double get driverRating => _driverRating;
+
+  Future<void> fetchDriverStats() async {
+    if (user != null) {
+      DocumentSnapshot doc = await FirebaseFirestore.instance
+          .collection('drivers')
+          .doc(user!.uid)
+          .get();
+
+      if (doc.exists) {
+        // Assuming 'totalRatings' stores the calculated average
+        _driverRating = (doc.data() as Map<String, dynamic>)['averageRating']?.toDouble() ?? 0.0;
+        notifyListeners();
+      }
+    }
+  }
+
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   final String _cloudinaryCloudName = dotenv.get("CLOUDINARY_CLOUD_NAME");
@@ -182,10 +200,15 @@ class AuthProviderMethod extends ChangeNotifier {
   Future<void> signOut() async {
     if (user != null) {
       try {
-        // Delete token from 'users' collection to match save logic
-        await _firestore.collection('users').doc(user!.uid).update({
-          'deviceToken': FieldValue.delete(),
-        });
+        if (user != null) {
+          // 1. Remove token from Firestore
+          await _firestore.collection('users').doc(user!.uid).update({
+            'deviceToken': FieldValue.delete(),
+          });
+
+          // 2. Also revoke the token on FCM servers
+          await FirebaseMessaging.instance.deleteToken();
+        }
       } catch (e) {
         debugPrint("Error clearing token on sign-out: $e");
       }

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -10,15 +9,11 @@ import 'package:geolocator/geolocator.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
-import 'package:esewa_flutter_sdk/esewa_flutter_sdk.dart';
-import 'package:esewa_flutter_sdk/esewa_config.dart';
-import 'package:esewa_flutter_sdk/esewa_payment.dart';
-import 'package:sajilo_ride/core/constants/payment_config.dart';
 import 'package:sajilo_ride/data/model/car_model.dart';
 import 'package:sajilo_ride/screens/passenger/booking_confirm.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../navbar/navbar_config.dart';
 import '../../widgets/booking_components.dart';
+import '../../widgets/esewa-payment/esewa_payment.dart';
 import '../../widgets/place_search.dart';
 
 class PassengerHomeContent extends StatefulWidget {
@@ -53,6 +48,38 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
     super.initState();
     _getCurrentLocation();
     _listenToLiveDrivers();
+    _checkForActiveBooking();
+  }
+
+  Future<void> _checkForActiveBooking() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) return;
+
+    var activeBooking = await FirebaseFirestore.instance
+        .collection('bookings')
+        .where('passengerId', isEqualTo: userId)
+        .where('status', whereIn: ['pending', 'accepted'])
+        .limit(1) // Optimization: we only need to know if at least one exists
+        .get();
+
+    if (activeBooking.docs.isNotEmpty && mounted) {
+      final bookingDoc = activeBooking.docs.first;
+      final bookingData = bookingDoc.data();
+
+      // Navigate immediately to the tracking/confirmation screen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BookingConfirmContent(
+            // Pass the data from the existing booking so the UI can render it
+            car: CarModel.fromMap(bookingData, bookingDoc.id),
+            userRole: UserRole.passenger,
+            fare: double.tryParse(bookingData['fare'].toString()) ?? 0.0,
+            distance: 0, // You could fetch the saved distance if needed
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -100,6 +127,16 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
   }
 
   // --- CORE SYSTEM FUNCTIONALITIES (OSRM, Geo, Payments, FCM) ---
+
+  final esewaHandler = EsewaPaymentWidget();
+  void _handleEsewaPayment() {
+    esewaHandler.processEsewaSDKPayment(
+      context: context,
+      onConfirm: (status, method) => _confirmBooking(paymentStatus: status, method: method),
+      onError: (message) => _showErrorSnackBar(message),
+    );
+  }
+
 
   Future<void> _getCurrentLocation() async {
     LocationPermission permission = await Geolocator.checkPermission();
@@ -188,39 +225,6 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
     }
   }
 
-  void _processEsewaSDKPayment() {
-    try {
-      EsewaFlutterSdk.initPayment(
-        esewaConfig: EsewaConfig(
-            environment: Environment.test,
-            clientId: PaymentConfig.clientId,
-            secretId: PaymentConfig.secretKey
-        ),
-        esewaPayment: EsewaPayment(
-          productId: "ride_${DateTime.now().millisecondsSinceEpoch}",
-          productName: selectedCar!.model,
-          productPrice: fare.toStringAsFixed(0),
-          callbackUrl: '',
-        ),
-        onPaymentSuccess: (data) => _confirmBooking(paymentStatus: "paid", method: "eSewa"),
-        onPaymentFailure: (data) => _showErrorSnackBar("Payment Failed"),
-        onPaymentCancellation: (data) => debugPrint("Cancelled"),
-      );
-    } catch (e) {
-      debugPrint("eSewa Error: $e");
-    }
-  }
-
-  Future<void> payWithEsewaWeb(double amount) async {
-    final pid = DateTime.now().millisecondsSinceEpoch.toString();
-    final url = Uri.parse("https://uat.esewa.com.np/epay/main?amt=${amount.toStringAsFixed(0)}&pdc=0&psc=0&txAmt=0&tAmt=${amount.toStringAsFixed(0)}&pid=$pid&scd=EPAYTEST&su=https://your-success-url.com&fu=https://your-failure-url.com");
-
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
-      _showErrorSnackBar('Could not open eSewa portal');
-    }
-  }
 
   Future<void> _sendNotificationToDriver(String driverId, String pickupAddr, String tripFare) async {
     try {
@@ -275,8 +279,12 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
       final String targetedDriverId = selectedCar!.driverId;
       final String finalFareString = fare.toStringAsFixed(0);
 
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+      String passengerPhone = userDoc.get('phone') ?? 'N/A';
+
       await FirebaseFirestore.instance.collection('bookings').add({
         'passengerId': userId,
+        'passengerPhone': passengerPhone,
         'driverId': targetedDriverId,
         'status': 'pending',
         'pickupAddress': _pickupAddress,
@@ -366,7 +374,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
                 onTap: () => setState(() => selectedCar = driver),
                 child: Icon(Icons.directions_car, color: Colors.orange.shade700, size: 30),
               ),
-            )).toList(),
+            )),
           ],
         ),
       ],
@@ -403,6 +411,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
   }
 
   Widget _buildBookingContent() {
+    bool isLoading = false;
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Column(
@@ -410,12 +419,6 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
         children: [
           const Text("Where are you going?", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
-
-          /*LocationInputField(
-            icon: Icons.circle, color: Colors.green, label: "Pickup",
-            address: _pickupAddress, active: isSelectingPickup,
-            onTap: () => setState(() => isSelectingPickup = true),
-          ),*/
 
           LocationInputField(
             icon: Icons.circle, color: Colors.green, label: "Pickup",
@@ -470,11 +473,17 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
                 pickupLocation: pickupLocation,
                 dropOffLocation: dropOffLocation,
                 onPaymentMethodChanged: (method) => setState(() => selectedPayment = method),
-                onConfirmPressed: () {
-                  if (selectedPayment == "eSewa") {
-                    kIsWeb ? payWithEsewaWeb(fare) : _processEsewaSDKPayment();
-                  } else {
-                    _confirmBooking();
+                onConfirmPressed: () async{
+                  if (isLoading) return;
+                  setState(() => isLoading = true);
+                  try {
+                    if (selectedPayment == "eSewa") {
+                      _handleEsewaPayment();
+                    } else {
+                      await _confirmBooking();
+                    }
+                  } finally {
+                    setState(() => isLoading = false);
                   }
                 },
               ),
