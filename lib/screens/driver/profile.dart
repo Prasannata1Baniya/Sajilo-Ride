@@ -4,9 +4,9 @@ import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
 import 'package:sajilo_ride/screens/driver/earning.dart';
 import 'package:sajilo_ride/screens/driver/profile/app_settings_screen.dart';
-import 'package:sajilo_ride/screens/driver/profile/help_support_screen.dart';
 import '../auth_page/login_page.dart';
 import 'car_management.dart';
+import 'package:sajilo_ride/screens/shared/help_support_page.dart';
 
 class DriverProfileContent extends StatelessWidget {
   const DriverProfileContent({super.key});
@@ -134,8 +134,11 @@ class DriverProfileContent extends StatelessWidget {
                 _buildProfileOption(
                   icon: Icons.help_outline,
                   title: "Support & Help",
-                  onTap: ()=> Navigator.push(context, MaterialPageRoute(builder: (context) =>  HelpSupportScreen(),),),
+                  onTap: () {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HelpSupportPage(isDriver: true)));
+                  },
                 ),
+
                 _buildProfileOption(
                   icon: Icons.settings,
                   title: "App Settings",
