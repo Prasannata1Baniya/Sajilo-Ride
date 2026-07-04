@@ -107,7 +107,7 @@ class _RatingScreenState extends State<RatingScreen> {
                       if (snapshot.hasData && snapshot.data!.exists) {
                         var driverData = snapshot.data!.data() as Map<String, dynamic>;
 
-                        String driverName = driverData['name'] ?? 'Driver';
+                        String driverName = driverData['driverName'] ?? 'Driver';
                         return Text("Rate your driver: $driverName", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold));
                       }
 

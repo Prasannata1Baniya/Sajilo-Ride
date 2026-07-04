@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
 import 'package:sajilo_ride/screens/driver/earning.dart';
+import 'package:sajilo_ride/screens/driver/profile/app_settings_screen.dart';
+import 'package:sajilo_ride/screens/driver/profile/help_support_screen.dart';
 import '../auth_page/login_page.dart';
 import 'car_management.dart';
 
@@ -85,19 +87,14 @@ class DriverProfileContent extends StatelessWidget {
                   },
                 ),
                 _buildProfileOption(
-                  icon: Icons.payment,
-                  title: "Payment Methods",
-                  onTap: () {},
-                ),
-                _buildProfileOption(
                   icon: Icons.help_outline,
                   title: "Support & Help",
-                  onTap: () {},
+                  onTap: ()=> Navigator.push(context, MaterialPageRoute(builder: (context) =>  HelpSupportScreen(),),),
                 ),
                 _buildProfileOption(
                   icon: Icons.settings,
                   title: "App Settings",
-                  onTap: () {},
+                  onTap: ()=> Navigator.push(context, MaterialPageRoute(builder: (context) =>  AppSettingsScreen(),),),
                 ),
 
                 const Divider(height: 40),

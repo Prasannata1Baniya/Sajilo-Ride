@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
 import 'package:sajilo_ride/screens/passenger/bookings_page.dart';
+import 'package:sajilo_ride/screens/passenger/profile/help_support_screen.dart';
+import 'package:sajilo_ride/screens/passenger/profile/notifications_screen.dart';
+import 'package:sajilo_ride/screens/passenger/profile/payment_screen.dart';
 
 import '../auth_page/login_page.dart';
 
@@ -67,19 +70,19 @@ class PassengerProfileContent extends StatelessWidget {
                     icon: Icons.payment,
                     title: "Payment Methods",
                     subtitle: "Manage your eSewa and Cash options",
-                    onTap: () {},
+                    onTap: () =>Navigator.of(context).push(MaterialPageRoute(builder: (_)=>PaymentScreen())),
                   ),
                   _buildProfileTile(
                     icon: Icons.notifications_none,
                     title: "Notifications",
                     subtitle: "Manage your alerts and news",
-                    onTap: () {},
+                    onTap: () =>Navigator.of(context).push(MaterialPageRoute(builder: (_)=>NotificationsScreen())),
                   ),
                   _buildProfileTile(
                     icon: Icons.help_outline,
                     title: "Help & Support",
                     subtitle: "Get help with your rides",
-                    onTap: () {},
+                    onTap: () =>Navigator.of(context).push(MaterialPageRoute(builder: (_)=>HelpSupportScreen())),
                   ),
                 ],
               ),
