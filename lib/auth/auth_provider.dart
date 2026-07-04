@@ -22,6 +22,24 @@ class AuthProviderMethod extends ChangeNotifier {
     });
   }
 
+  double _driverRating = 0.0;
+  double get driverRating => _driverRating;
+
+  Future<void> fetchDriverStats() async {
+    if (user != null) {
+      DocumentSnapshot doc = await FirebaseFirestore.instance
+          .collection('drivers')
+          .doc(user!.uid)
+          .get();
+
+      if (doc.exists) {
+        // Assuming 'totalRatings' stores the calculated average
+        _driverRating = (doc.data() as Map<String, dynamic>)['averageRating']?.toDouble() ?? 0.0;
+        notifyListeners();
+      }
+    }
+  }
+
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   final String _cloudinaryCloudName = dotenv.get("CLOUDINARY_CLOUD_NAME");
