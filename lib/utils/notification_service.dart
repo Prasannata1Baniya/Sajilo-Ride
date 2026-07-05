@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
@@ -37,7 +39,7 @@ class NotificationService {
     );
 
     await _notificationsPlugin.show(
-      0, title, body,
+      Random().nextInt(100), title, body,
       const NotificationDetails(android: androidDetails),
     );
   }
