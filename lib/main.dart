@@ -7,6 +7,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
 import 'package:sajilo_ride/screens/onboarding_page.dart';
+import 'package:sajilo_ride/utils/notification_service.dart';
 import 'package:sajilo_ride/widgets/app_shell.dart';
 import 'navbar/navbar_config.dart';
 import 'firebase_options.dart';
@@ -19,6 +20,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await NotificationService.initialize();
 
   runApp(const MyApp());
 }
