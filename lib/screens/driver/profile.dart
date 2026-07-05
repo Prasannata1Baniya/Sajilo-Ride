@@ -37,13 +37,17 @@ class DriverProfileContent extends StatelessWidget {
             child: Column(
               children: [
                 
-                FutureBuilder<DocumentSnapshot>(future: FirebaseFirestore.instance.collection('drivers').doc(user?.uid).get(),
-                    builder: (context, snapshot){
+                FutureBuilder(
+                    future: Future.wait([
+                      FirebaseFirestore.instance.collection('drivers').doc(user?.uid).get(),
+                      FirebaseFirestore.instance.collection('users').doc(user?.uid).get(),
+                    ]),
+                    builder: (context, AsyncSnapshot<List<DocumentSnapshot>> snapshot){
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const CircleAvatar(radius: 50, backgroundColor: Colors.grey);
                       }
 
-                      if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
+                      if (!snapshot.hasData || snapshot.data![0].data() == null) {
                         // Return a default "unverified" UI
                         return const CircleAvatar(
                           radius: 50,
@@ -52,10 +56,10 @@ class DriverProfileContent extends StatelessWidget {
                         );
                       }
 
-                      final data = snapshot.data!.data() as Map<String, dynamic>;
-                      final num rawRating = data['averageRating'] ?? 0.0;
-                      final double rating = rawRating.toDouble();
-                      final isVerified = data['isVerified'] ?? false;
+                      final driverData = snapshot.data![0].data() as Map<String, dynamic>;
+                      final userData = snapshot.data![1].data() as Map<String, dynamic>;
+                      final rating = (driverData['averageRating'] ?? 0.0).toDouble();
+                      final isVerified = userData['isVerified'] ?? false;
 
                       return Stack(
                         clipBehavior: Clip.none,
