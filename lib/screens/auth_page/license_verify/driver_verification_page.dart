@@ -152,6 +152,7 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
       widget.phone,
       'driver',
       licenseFile: _licenseFile,
+      selfieFile: _selfieFile,
       faceEmbeddings: selfieEmbeddings,
     );
 
@@ -178,6 +179,7 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
         widget.phone,
         'driver',
         licenseFile: _licenseFile,
+        selfieFile: _selfieFile,
         faceEmbeddings: selfieEmbeddings,
       );
 

@@ -29,7 +29,7 @@ class AdminDashboardPage extends StatefulWidget {
 class _AdminDashboardPageState extends State<AdminDashboardPage> {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // to quickly handle approving the driver document
+  // Helper to quickly handle approving the driver document
   Future<void> _approveDriver(String uid, String name) async {
     try {
       await _db.collection('users').doc(uid).update({
@@ -45,7 +45,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     }
   }
 
-  // to handle rejecting / deleting unverified entries safely
+  // Helper to handle rejecting / deleting unverified entries safely
   Future<void> _rejectDriver(String uid, String name) async {
     try {
       // You can either delete the doc or update a status like 'isRejected: true'
@@ -359,7 +359,18 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               panEnabled: true,
               minScale: 0.5,
               maxScale: 4,
-              child: Image.network(imageUrl, fit: BoxFit.contain),
+              child: Image.network(imageUrl,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline, color: Colors.red, size: 50),
+                      const Text("Invalid image format or link"),
+                      Text(imageUrl, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                    ],
+                  );
+                },),
             ),
           ),
         ],

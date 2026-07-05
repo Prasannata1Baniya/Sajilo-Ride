@@ -82,6 +82,7 @@ class AuthProviderMethod extends ChangeNotifier {
       String phone,
       String role, {
         XFile? licenseFile,
+        XFile? selfieFile,
         List<double>? faceEmbeddings,
       }) async {
     try {
@@ -93,6 +94,11 @@ class AuthProviderMethod extends ChangeNotifier {
           return "Failed to upload document to media server. Registration aborted.";
         }
         licenseUrl = uploadedUrl;
+      }
+
+      String selfieUrl = "";
+      if (selfieFile != null) {
+        selfieUrl = await _uploadToCloudinary(selfieFile) ?? "";
       }
 
       // 2. Create the user authentication profile inside Firebase Auth
@@ -112,12 +118,12 @@ class AuthProviderMethod extends ChangeNotifier {
         'phone': phone,
         'role': role,
         'licenseUrl': licenseUrl,
+        'selfieUrl': selfieUrl,
         // Saved Cloudinary link
         'faceEmbeddings': faceEmbeddings,
         // Array of local TFLite numbers saved cleanly
         'createdAt': FieldValue.serverTimestamp(),
         'isVerified': false,
-        // Pending review status
       });
 
       return 'Success';
