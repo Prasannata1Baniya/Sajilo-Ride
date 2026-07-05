@@ -163,7 +163,7 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
     double distance = _calculateDistance(licenseEmbeddings, selfieEmbeddings);
     debugPrint("DEBUG: Calculated face biometric distance -> $distance");
 
-    if (distance > 0.7) {
+    if (distance > 0.8) {
       _showDialog(
           title: "Verification Mismatch",
           message: "The selfie doesn't match the license clearly. Ensure you are in a bright area, remove glasses, and look directly at the camera.",
