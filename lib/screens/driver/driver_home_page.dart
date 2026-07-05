@@ -1,7 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
@@ -21,9 +19,6 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
   @override
   void initState() {
     super.initState();
-    _initNotifications();
-
-    _requestNotificationPermission();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = Provider.of<AuthProviderMethod>(context, listen: false);
@@ -32,54 +27,8 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
         authProvider.saveDeviceToken(driverId);
       }
     });
-
-    // Listen for messages while the app is in the foreground
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      if (message.notification != null) {
-        // Using flutter_local_notifications to display the notification
-        _displayLocalNotification(
-          message.notification!.title ?? "New Ride",
-          message.notification!.body ?? "Check your app for a new request!",
-        );
-      }
-    });
-
-  }
-  Future<void> _initNotifications() async {
-    const AndroidInitializationSettings androidSettings =
-    AndroidInitializationSettings('@mipmap/ic_launcher');
-    await FlutterLocalNotificationsPlugin().initialize(
-      const InitializationSettings(android: androidSettings),
-    );
   }
 
-  Future<void> _requestNotificationPermission() async {
-    FirebaseMessaging messaging = FirebaseMessaging.instance;
-    NotificationSettings settings = await messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      debugPrint('User granted permission');
-    }
-  }
-
-  // Helper method to display the notification
-  Future<void> _displayLocalNotification(String title, String body) async {
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'sajilo_ride_notifications',
-      'Ride Requests',
-      importance: Importance.max,
-      priority: Priority.high,
-    );
-
-    const NotificationDetails platformDetails = NotificationDetails(android: androidDetails);
-
-    await FlutterLocalNotificationsPlugin().show(
-      0, title, body, platformDetails,
-    );
-  }
 
   bool _isAccepting = false;
 
@@ -89,7 +38,6 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
     final driverId = authProvider.user?.uid;
 
     if (driverId == null) return const Scaffold(body: Center(child: Text("Not logged in")));
-    authProvider.saveDeviceToken(driverId);
 
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance

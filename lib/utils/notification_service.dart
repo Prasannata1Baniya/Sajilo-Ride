@@ -30,8 +30,8 @@ class NotificationService {
 
   static Future<void> _showLocalNotification(String title, String body) async {
     const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'high_importance_channel', // Must match your Manifest ID
-      'High Importance Notifications',
+      'sajilo_ride_notifications',
+      'Ride Requests',
       importance: Importance.max,
       priority: Priority.high,
     );
