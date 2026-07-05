@@ -37,7 +37,7 @@ class DriverProfileContent extends StatelessWidget {
             child: Column(
               children: [
                 
-                FutureBuilder<DocumentSnapshot>(future: FirebaseFirestore.instance.collection('users').doc(user?.uid).get(),
+                FutureBuilder<DocumentSnapshot>(future: FirebaseFirestore.instance.collection('drivers').doc(user?.uid).get(),
                     builder: (context, snapshot){
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const CircleAvatar(radius: 50, backgroundColor: Colors.grey);
