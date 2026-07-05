@@ -31,6 +31,9 @@ class _RatingScreenState extends State<RatingScreen> {
         final driverSnapshot = await transaction.get(driverRef);
         final bookingSnapshot = await transaction.get(bookingRef);
 
+        if (!bookingSnapshot.exists) throw Exception("Booking not found.");
+        if (!driverSnapshot.exists) throw Exception("Driver not found.");
+
         if (bookingSnapshot.data()?['status'] == 'reviewed') {
           throw Exception("This ride has already been rated.");
         }

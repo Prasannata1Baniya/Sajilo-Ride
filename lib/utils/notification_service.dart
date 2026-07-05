@@ -65,12 +65,17 @@ class NotificationService {
     const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       'sajilo_ride_notifications',
       'Ride Requests',
+      channelDescription: 'Notifications for incoming ride requests', // ADD THIS
       importance: Importance.max,
-      priority: Priority.high,
+      priority: Priority.high,    // MUST be high
+      playSound: true,
+      fullScreenIntent: true,
     );
 
     await _notificationsPlugin.show(
-      Random().nextInt(100), title, body,
+      Random().nextInt(100),
+      title,
+      body,
       const NotificationDetails(android: androidDetails),
     );
   }

@@ -276,7 +276,10 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
             },
             'android': {
               'priority': 'high',
-              'notification': {'sound': 'default', 'channel_id': 'high_importance_channel'},
+              'notification': {
+                'sound': 'default',
+                'channel_id': 'sajilo_ride_notifications'
+              },
             },
           }
         }),
@@ -284,6 +287,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
       client.close();
     } catch (e) {
       debugPrint("Notification Delivery Error: $e");
+
     }
   }
 

@@ -171,6 +171,7 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
             .collection('bookings')
             .where('passengerId', isEqualTo: userId)
             .where('status', whereIn: ['pending', 'accepted', 'ongoing','completed', 'searching'])
+            .where('hiddenFromUser', isNotEqualTo: true)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -216,11 +217,11 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
               alignment: Alignment.topRight,
               child: IconButton(
                 icon: const Icon(Icons.close, color: Colors.orange),
-                padding: EdgeInsets.zero, // Remove extra padding
+                padding: EdgeInsets.zero, // Remove  padding
                 constraints: const BoxConstraints(), // Shrink the hit area
                 onPressed: () async {
                   await FirebaseFirestore.instance.collection('bookings').doc(docId).update({
-                    'status': 'archived'
+                    'hiddenFromUser': true
                   });
                 },
               ),
@@ -282,7 +283,7 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
                 onPressed: () async {
                   // Mark as archived so it disappears from the list
                   await FirebaseFirestore.instance.collection('bookings').doc(docId).update({
-                    'status': 'archived'
+                    'hiddenFromUser': true
                   });
                 },
               ),
