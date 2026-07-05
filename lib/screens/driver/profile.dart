@@ -53,7 +53,8 @@ class DriverProfileContent extends StatelessWidget {
                       }
 
                       final data = snapshot.data!.data() as Map<String, dynamic>;
-                      final rating = (data['averageRating'] ?? 0.0).toDouble();
+                      final num rawRating = data['averageRating'] ?? 0.0;
+                      final double rating = rawRating.toDouble();
                       final isVerified = data['isVerified'] ?? false;
 
                       return Stack(
@@ -148,7 +149,7 @@ class DriverProfileContent extends StatelessWidget {
                   icon: Icons.help_outline,
                   title: "Support & Help",
                   onTap: () {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HelpSupportPage(isDriver: true)));
+                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HelpSupportPage(isDriver: true,)));
                   },
                 ),
 
