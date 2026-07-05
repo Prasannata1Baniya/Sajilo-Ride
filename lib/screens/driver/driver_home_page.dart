@@ -38,6 +38,7 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
     final driverId = authProvider.user?.uid;
 
     if (driverId == null) return const Scaffold(body: Center(child: Text("Not logged in")));
+    //authProvider.saveDeviceToken(driverId);
 
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance

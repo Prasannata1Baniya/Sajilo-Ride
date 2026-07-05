@@ -171,7 +171,7 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
             .collection('bookings')
             .where('passengerId', isEqualTo: userId)
             .where('status', whereIn: ['pending', 'accepted', 'ongoing','completed', 'searching'])
-            .where('hiddenFromUser', isNotEqualTo: true)
+           // .where('hiddenFromUser', isNotEqualTo: true)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -221,7 +221,7 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
                 constraints: const BoxConstraints(), // Shrink the hit area
                 onPressed: () async {
                   await FirebaseFirestore.instance.collection('bookings').doc(docId).update({
-                    'hiddenFromUser': true
+                    'status': 'archived'
                   });
                 },
               ),
@@ -280,10 +280,17 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
               top: 8,
               child: IconButton(
                 icon: const Icon(Icons.close, color: Colors.grey),
-                onPressed: () async {
+                /*onPressed: () async {
                   // Mark as archived so it disappears from the list
                   await FirebaseFirestore.instance.collection('bookings').doc(docId).update({
-                    'hiddenFromUser': true
+                    'status': 'archived'
+                  });},*/
+                // Inside _buildActiveRideCard logic for 'X' button
+                onPressed: () async {
+                  String newStatus = (status == 'searching') ? 'archived_search' : 'archived_completed';
+
+                  await FirebaseFirestore.instance.collection('bookings').doc(docId).update({
+                    'status': newStatus
                   });
                 },
               ),

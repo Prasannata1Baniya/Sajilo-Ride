@@ -27,7 +27,7 @@ class RideHistoryContent extends StatelessWidget {
         stream: FirebaseFirestore.instance
             .collection('bookings')
             .where('passengerId', isEqualTo: userId)
-            .where('status', whereIn: ['completed', 'cancelled'])
+            .where('status', whereIn: ['completed', 'cancelled','archived_completed'])
             .orderBy('timestamp', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
@@ -66,8 +66,16 @@ class RideHistoryContent extends StatelessWidget {
   Widget _buildHistoryCard(Map<String, dynamic> ride) {
     DateTime date = (ride['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now();
     String formattedDate = DateFormat('MMM dd, yyyy • hh:mm a').format(date);
-    bool isCancelled = ride['status'] == 'cancelled';
 
+    String status = ride['status'] ?? 'completed';
+    bool isCancelled = status == 'cancelled';
+    // Logic:
+    // 'cancelled' = User explicitly cancelled
+    // 'archived' = User dismissed a search or a completed trip
+    // 'completed' = Actual successful trip
+
+     bool isReallyCompleted = ride['status'] == 'completed'
+        || (ride['status'] == 'archived' && ride['wasCompleted'] == true);
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -177,7 +185,7 @@ class RideHistoryContent extends StatelessWidget {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    isCancelled ? "CANCELLED" : "COMPLETED",
+                    isReallyCompleted ? "COMPLETED" : "CANCELLED",
                     style: TextStyle(
                       color: isCancelled ? Colors.red.shade700 : Colors.green.shade700,
                       fontSize: 10,
