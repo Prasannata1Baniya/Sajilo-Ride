@@ -36,54 +36,68 @@ class DriverProfileContent extends StatelessWidget {
             ),
             child: Column(
               children: [
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    const CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.orange,
-                      child: Icon(Icons.person, size: 50, color: Colors.white),
-                    ),
-                    // Positioned Rating Badge
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.amber, width: 2),
-                          boxShadow: [
-                            BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4, offset: const Offset(0, 2))
-                          ],
-                        ),
-                        child: FutureBuilder<DocumentSnapshot>(
-                          future: FirebaseFirestore.instance.collection('drivers').doc(user?.uid).get(),
-                          builder: (context, snapshot) {
-                            // Show a small loader or just an empty space while fetching
-                            if (!snapshot.hasData) return const SizedBox(width: 30, height: 15);
+                
+                FutureBuilder<DocumentSnapshot>(future: FirebaseFirestore.instance.collection('users').doc(user?.uid).get(),
+                    builder: (context, snapshot){
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const CircleAvatar(radius: 50, backgroundColor: Colors.grey);
+                      }
 
-                            final data = snapshot.data!.data() as Map<String, dynamic>;
-                            final rating = (data['averageRating'] ?? 0.0).toDouble();
+                      if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
+                        // Return a default "unverified" UI
+                        return const CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Colors.orange,
+                          child: Icon(Icons.person, size: 50, color: Colors.white),
+                        );
+                      }
 
-                            return Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.star, color: Colors.amber, size: 14),
-                                const SizedBox(width: 4),
-                                Text(
-                                  rating.toStringAsFixed(1),
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
+                      final data = snapshot.data!.data() as Map<String, dynamic>;
+                      final rating = (data['averageRating'] ?? 0.0).toDouble();
+                      final isVerified = data['isVerified'] ?? false;
+
+                      return Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          const CircleAvatar(
+                            radius: 50,
+                            backgroundColor: Colors.orange,
+                            child: Icon(Icons.person, size: 50, color: Colors.white),
+                          ),
+
+                          // Positioned Rating Badge
+                          if (isVerified)
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Colors.amber, width: 2),
+                                boxShadow: [
+                                  BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4, offset: const Offset(0, 2))
+                                ],
+                              ),
+                              child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.star, color: Colors.amber, size: 14),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        rating.toStringAsFixed(1),
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                      ),
+                                    ],
+                                  ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
                 ),
+
                 const SizedBox(height: 15),
                 Text(
                   user?.displayName ?? "Sajilo User",
