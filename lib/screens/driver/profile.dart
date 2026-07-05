@@ -13,7 +13,6 @@ class DriverProfileContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Access the user data and logout method from your AuthProvider
     final authProvider = Provider.of<AuthProviderMethod>(context);
     final user = authProvider.user;
 
@@ -147,16 +146,6 @@ class DriverProfileContent extends StatelessWidget {
 
                 const Divider(height: 40),
 
-                // 3. LOGOUT BUTTON
-                /*ListTile(
-                  onTap: () => _showLogoutDialog(context, authProvider),
-                  leading: const Icon(Icons.logout, color: Colors.red),
-                  title: const Text(
-                    "Logout",
-                    style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                  ),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.red),
-                ),*/
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: SizedBox(
