@@ -29,7 +29,7 @@ class AdminDashboardPage extends StatefulWidget {
 class _AdminDashboardPageState extends State<AdminDashboardPage> {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // Helper to quickly handle approving the driver document
+  // to quickly handle approving the driver document
   Future<void> _approveDriver(String uid, String name) async {
     try {
       await _db.collection('users').doc(uid).update({
@@ -45,7 +45,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     }
   }
 
-  // Helper to handle rejecting / deleting unverified entries safely
+  // to handle rejecting / deleting unverified entries safely
   Future<void> _rejectDriver(String uid, String name) async {
     try {
       // You can either delete the doc or update a status like 'isRejected: true'
