@@ -68,7 +68,7 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
   // Helper method to display the notification
   Future<void> _displayLocalNotification(String title, String body) async {
     const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'your_channel_id',
+      'sajilo_ride_notifications',
       'Ride Requests',
       importance: Importance.max,
       priority: Priority.high,
