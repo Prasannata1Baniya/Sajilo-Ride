@@ -1,15 +1,44 @@
 import 'dart:math';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotificationService {
   static final FlutterLocalNotificationsPlugin _notificationsPlugin =
   FlutterLocalNotificationsPlugin();
 
+  static Future<void> createChannel() async {
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'sajilo_ride_notifications', // Matches your Manifest meta-data
+      'Ride Requests',
+      description: 'Notifications for incoming ride requests',
+      importance: Importance.max, // Crucial for heads-up notifications
+    );
+
+    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
+
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
+  }
+
   static Future<void> initialize() async {
+
     // 1. Request Permission
-    await FirebaseMessaging.instance.requestPermission();
+    NotificationSettings settings = await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    if (settings.authorizationStatus == AuthorizationStatus.denied) {
+      debugPrint("User denied permission. Notifications will not work.");
+      return;
+    }
+
+    debugPrint('User permission status: ${settings.authorizationStatus}');
 
     // 2. Initialize Local Notifications
     const AndroidInitializationSettings androidSettings =
@@ -18,6 +47,8 @@ class NotificationService {
     InitializationSettings(android: androidSettings);
 
     await _notificationsPlugin.initialize(initSettings);
+
+    await createChannel();
 
     // 3. Listen for foreground messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
