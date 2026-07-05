@@ -60,15 +60,49 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Colors.white,
+        title: const Column(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 50),
+            SizedBox(height: 10),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black87),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.black54, fontSize: 14),
+            ),
+          ],
+        ),
+        actionsAlignment: MainAxisAlignment.spaceEvenly,
         actions: [
           TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("CANCEL", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
             onPressed: () {
               Navigator.pop(context);
               onRetry();
             },
-            child: const Text("Retry"),
+            child: const Text("RETRY", style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -130,10 +164,6 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
     debugPrint("DEBUG: Calculated face biometric distance -> $distance");
 
     if (distance > 0.6) {
-      //_showSnackBar("Face Verification Failed! The selfie face does not match your driving license document.", isError: true);
-      //setState(() => _isLoading = false);
-
-      // Instead of just failing, allow a "Retry" prompt
       _showDialog(
           title: "Verification Mismatch",
           message: "The selfie doesn't match the license clearly. Ensure you are in a bright area, remove glasses, and look directly at the camera.",
@@ -157,6 +187,7 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
     );
 
     if (!mounted) return;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
     if (message == 'Success') {
       _showSnackBar("Account created! Welcome onboard.", isError: false);
@@ -171,35 +202,6 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
       _showSnackBar(message, isError: true);
     }
 
-    try {
-      final message = await authProvider.signUpWithEmailAndPassword(
-        widget.name,
-        widget.email,
-        widget.password,
-        widget.phone,
-        'driver',
-        licenseFile: _licenseFile,
-        selfieFile: _selfieFile,
-        faceEmbeddings: selfieEmbeddings,
-      );
-
-      if (!mounted) return;
-
-      if (message == 'Success') {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const AppShell(userRole: UserRole.driver)),
-              (route) => false,
-        );
-      } else if (message.contains("email-already-in-use")) {
-        Navigator.pop(context, "This email is already registered.");
-      } else {
-        setState(() => _isLoading = false);
-        _showSnackBar(message, isError: true);
-      }
-    } catch (e) {
-      setState(() => _isLoading = false);
-      _showSnackBar("An error occurred: $e", isError: true);
-    }
   }
 
   ///calculate Distance
@@ -282,6 +284,8 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
 
     }catch (e) {
       debugPrint("DEBUG: 🚨 Error inside processing pipeline: $e");
+      await faceDetector.close();
+    }finally{
       await faceDetector.close();
     }
     return null;
