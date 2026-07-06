@@ -12,33 +12,6 @@ class EsewaPaymentWidget {
   CarModel? selectedCar;
   double fare = 0;
 
-  /*void processEsewaSDKPayment({
-    required BuildContext context,
-    required Function(String, String) onConfirm,
-    required Function(String) onError,
-    }) {
-    try {
-      EsewaFlutterSdk.initPayment(
-        esewaConfig: EsewaConfig(
-            environment: Environment.test,
-            clientId: PaymentConfig.clientId,
-            secretId: PaymentConfig.secretKey
-        ),
-        esewaPayment: EsewaPayment(
-          productId: "ride_${DateTime.now().millisecondsSinceEpoch}",
-          productName: selectedCar!.model,
-          productPrice: fare.toStringAsFixed(0),
-          callbackUrl: '',
-        ),
-        onPaymentSuccess: (data) => onConfirm("paid", "eSewa"),
-        onPaymentFailure: (data) => onError("Payment Failed"),
-        onPaymentCancellation: (data) => debugPrint("Cancelled"),
-      );
-    } catch (e) {
-      debugPrint("eSewa Error: $e");
-    }
-  }*/
-
   // Update your method signature
   void processEsewaSDKPayment({
     required BuildContext context,
@@ -81,3 +54,32 @@ class EsewaPaymentWidget {
     }
   }
 }
+
+
+
+/*void processEsewaSDKPayment({
+    required BuildContext context,
+    required Function(String, String) onConfirm,
+    required Function(String) onError,
+    }) {
+    try {
+      EsewaFlutterSdk.initPayment(
+        esewaConfig: EsewaConfig(
+            environment: Environment.test,
+            clientId: PaymentConfig.clientId,
+            secretId: PaymentConfig.secretKey
+        ),
+        esewaPayment: EsewaPayment(
+          productId: "ride_${DateTime.now().millisecondsSinceEpoch}",
+          productName: selectedCar!.model,
+          productPrice: fare.toStringAsFixed(0),
+          callbackUrl: '',
+        ),
+        onPaymentSuccess: (data) => onConfirm("paid", "eSewa"),
+        onPaymentFailure: (data) => onError("Payment Failed"),
+        onPaymentCancellation: (data) => debugPrint("Cancelled"),
+      );
+    } catch (e) {
+      debugPrint("eSewa Error: $e");
+    }
+  }*/
