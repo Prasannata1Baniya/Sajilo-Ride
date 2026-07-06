@@ -19,6 +19,7 @@ class EsewaPaymentWidget {
     required String productPrice,
     required Function(String, String) onConfirm,
     required Function(String) onError,
+    required String bookingId,
   }) {
     try {
       EsewaFlutterSdk.initPayment(
@@ -28,7 +29,8 @@ class EsewaPaymentWidget {
             secretId: PaymentConfig.secretKey
         ),
         esewaPayment: EsewaPayment(
-          productId: "ride_${DateTime.now().millisecondsSinceEpoch}",
+         // productId: "ride_${DateTime.now().millisecondsSinceEpoch}",
+          productId: bookingId,
           productName: productName, // Use the passed argument
           productPrice: productPrice, // Use the passed argument
           callbackUrl: '',

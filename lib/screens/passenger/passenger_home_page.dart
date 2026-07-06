@@ -13,12 +13,12 @@ import 'package:sajilo_ride/data/model/car_model.dart';
 import 'package:sajilo_ride/screens/passenger/booking_confirm.dart';
 import '../../navbar/navbar_config.dart';
 import '../../widgets/booking_components.dart';
-import '../../widgets/esewa-payment/esewa_payment.dart';
+import '../../utils/esewa-payment/esewa_payment.dart';
+import '../../widgets/passenger_widget/passenger_widget.dart';
 import '../../widgets/place_search.dart';
 
 class PassengerHomeContent extends StatefulWidget {
   const PassengerHomeContent({super.key});
-
   @override
   State<PassengerHomeContent> createState() => _PassengerHomeContentState();
 }
@@ -26,21 +26,17 @@ class PassengerHomeContent extends StatefulWidget {
 class _PassengerHomeContentState extends State<PassengerHomeContent> {
   final MapController _mapController = MapController();
   bool isLoading = false;
-
   LatLng _currentCenter = const LatLng(27.7172, 85.3240);
   LatLng? pickupLocation;
   LatLng? dropOffLocation;
   List<LatLng> routePoints = [];
-
   double distance = 0;
   double fare = 0;
   CarModel? selectedCar;
   String selectedPayment = "Cash";
-
   String _pickupAddress = "Select Pickup Point";
   String _dropoffAddress = "Select Drop-off Point";
   bool isSelectingPickup = true;
-
   List<CarModel> liveCars = [];
   StreamSubscription<QuerySnapshot>? _driverSubscription;
 
@@ -50,51 +46,6 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
     _getCurrentLocation();
     //_cheXckForActiveBooking();
   }
-
-  /*Future<void> _checkForActiveBooking() async {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId == null) return;
-
-    var activeBooking = await FirebaseFirestore.instance
-        .collection('bookings')
-        .where('passengerId', isEqualTo: userId)
-        .where('status', whereIn: ['pending', 'accepted'])
-        .limit(1) // Optimization: we only need to know if at least one exists
-        .get();
-
-    if (activeBooking.docs.isNotEmpty && mounted) {
-      if (ModalRoute.of(context)?.isCurrent == true) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => BookingConfirmContent(
-             car: CarModel.fromMap(bookingData, bookingDoc.id), // Provide an empty/default model
-              userRole: UserRole.passenger,        // Provide a default enum value
-              fare: fare ?? 0.0,                   // Provide 0.0 if fare is null
-              distance: distance ?? 0.0,           // Provide 0.0 if distance is null
-            ),
-          ),
-        );
-      }
-
-      final bookingDoc = activeBooking.docs.first;
-      final bookingData = bookingDoc.data();
-
-      // Navigate immediately to the tracking/confirmation screen
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => BookingConfirmContent(
-            // Pass the data from the existing booking so the UI can render it
-            car: CarModel.fromMap(bookingData, bookingDoc.id),
-            userRole: UserRole.passenger,
-            fare: double.tryParse(bookingData['fare'].toString()) ?? 0.0,
-            distance: 0, // You could fetch the saved distance if needed
-          ),
-        ),
-      );
-    }
-  }*/
 
   @override
   void dispose() {
@@ -143,26 +94,30 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
   // --- CORE SYSTEM FUNCTIONALITIES (OSRM, Geo, Payments, FCM) ---
 
   final esewaHandler = EsewaPaymentWidget();
-  /*void _handleEsewaPayment() {
-    esewaHandler.processEsewaSDKPayment(
-      context: context,
-      onConfirm: (status, method) => _confirmBooking(paymentStatus: status, method: method),
-      onError: (message) => _showErrorSnackBar(message),
-    );
-  }*/
+
 
   void _handleEsewaPayment() {
     if (selectedCar == null) {
       _showErrorSnackBar("Please select a car first");
       return;
     }
+    final String bookingId = FirebaseFirestore.instance.collection('bookings').doc().id;
 
     esewaHandler.processEsewaSDKPayment(
       context: context,
       productName: selectedCar!.model,
       productPrice: fare.toStringAsFixed(0),
-      onConfirm: (status, method) => _confirmBooking(paymentStatus: status, method: method),
-      onError: (message) => _showErrorSnackBar(message),
+      //onConfirm: (status, method) => _confirmBooking(paymentStatus: status, method: method),
+      bookingId: bookingId,
+      onConfirm: (status, method) async {
+        // 2. Only save the booking to Firestore AFTER payment succeeds
+        await _confirmBooking(paymentStatus: status, method: method, bookingId: bookingId);
+        if (mounted) setState(() => isLoading = false);
+      },
+      onError: (message) {
+        if (mounted) setState(() => isLoading = false);
+        _showErrorSnackBar(message);
+      },
     );
   }
 
@@ -257,12 +212,15 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
 
   Future<void> _sendNotificationToDriver(String driverId, String pickupAddr, String tripFare) async {
     try {
-      DocumentSnapshot driverDoc = await FirebaseFirestore.instance.collection('drivers').doc(driverId).get();
+      DocumentSnapshot driverDoc = await FirebaseFirestore.instance.collection('users').doc(driverId).get();
       if (!driverDoc.exists) return;
 
       var driverData = driverDoc.data() as Map<String, dynamic>;
-      String? deviceToken = driverData['deviceToken'];
-      if (deviceToken == null || deviceToken.isEmpty) return;
+      String? deviceToken = driverData['fcmToken'];
+      if (deviceToken == null || deviceToken.isEmpty) {
+        debugPrint("Driver has no FCM token");
+        return;
+      }
 
       final scopes = ['https://www.googleapis.com/auth/firebase.messaging'];
       final serviceAccountCredentials = auth.ServiceAccountCredentials.fromJson({
@@ -276,7 +234,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
       final client = await auth.clientViaServiceAccount(serviceAccountCredentials, scopes);
       final String accessToken = client.credentials.accessToken.data;
 
-      await http.post(
+      final response = await http.post(
         Uri.parse('https://fcm.googleapis.com/v1/projects/${dotenv.get("FCM_PROJECT_ID")}/messages:send'),
         headers: <String, String>{
           'Content-Type': 'application/json',
@@ -299,6 +257,8 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
           }
         }),
       );
+      debugPrint("FCM Status: ${response.statusCode}");
+      debugPrint("FCM Response: ${response.body}");
       client.close();
     } catch (e) {
       debugPrint("Notification Delivery Error: $e");
@@ -306,7 +266,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
     }
   }
 
-  Future<void> _confirmBooking({String paymentStatus = "unpaid", String method = "Cash"}) async {
+  Future<void> _confirmBooking({String paymentStatus = "unpaid", String method = "Cash",String? bookingId}) async {
     if (selectedCar == null) {
       _showErrorSnackBar("Please select a driver first.");
       return;
@@ -320,15 +280,10 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
     try {
       final String targetedDriverId = selectedCar!.driverId;
       final String finalFareString = fare.toStringAsFixed(0);
-
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
       //String passengerPhone = userDoc.get('phone') ?? 'N/A';
       String passengerPhone = 'N/A';
-      if (userDoc.exists) {
-        Map<String, dynamic>? data = userDoc.data() as Map<String, dynamic>?;
-        passengerPhone = data?['phone'] ?? 'N/A';
-      }
-      await FirebaseFirestore.instance.collection('bookings').add({
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+      final Map<String, dynamic> bookingData ={
         'passengerId': userId,
         'passengerPhone': passengerPhone,
         'driverId': targetedDriverId,
@@ -345,12 +300,19 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
         'paymentMethod': method,
         'timestamp': FieldValue.serverTimestamp(),
         'otp': (1000 + (DateTime.now().millisecondsSinceEpoch % 9000)).toString(),
-      });
+      };
+
+
+      if (userDoc.exists) {
+        Map<String, dynamic>? data = userDoc.data() as Map<String, dynamic>?;
+        passengerPhone = data?['phone'] ?? 'N/A';
+      }
+      await FirebaseFirestore.instance.collection('bookings').doc(userId).set(bookingData);
 
       debugPrint("DEBUG: Checking user document for ID: $userId");
       debugPrint("DEBUG: Data found: ${userDoc.data()}");
 
-      await _sendNotificationToDriver(targetedDriverId, _pickupAddress, finalFareString);
+      await _sendNotificationToDriver(targetedDriverId, _pickupAddress, fare.toStringAsFixed(0));
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -433,7 +395,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
   Widget _buildWebPanel() {
     return Positioned(
       right: 20, top: 20, bottom: 20,
-      child: Container(width: 450, decoration: _panelDecoration(), child: _buildBookingContent()),
+      child: Container(width: 450, decoration: panelDecoration(), child: _buildBookingContent()),
     );
   }
 
@@ -445,22 +407,13 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
       alignment: Alignment.bottomCenter,
       child: Container(
         height: MediaQuery.of(context).size.height * panelHeightFactor,
-        decoration: _panelDecoration(isMobile: true),
+        decoration: panelDecoration(isMobile: true),
         child: _buildBookingContent(),
       ),
     );
   }
 
-  BoxDecoration _panelDecoration({bool isMobile = false}) {
-    return BoxDecoration(
-      color: Colors.white,
-      borderRadius: isMobile ? const BorderRadius.vertical(top: Radius.circular(30)) : BorderRadius.circular(20),
-      boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 15, spreadRadius: 5)],
-    );
-  }
-
   Widget _buildBookingContent() {
-
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Column(
@@ -532,10 +485,14 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
                       _handleEsewaPayment();
                     } else {
                       await _confirmBooking();
-                      setState(() => isLoading = false);
+                      if (mounted) {
+                        setState(() => isLoading = false);
+                      }
                     }
                   } catch(e) {
-                    setState(() => isLoading = false);
+                    if (mounted) {
+                      setState(() => isLoading = false);
+                    }
                     _showErrorSnackBar("Error: $e");
                   }
                 },

@@ -242,9 +242,8 @@ class AuthProviderMethod extends ChangeNotifier {
         String? token = await messaging.getToken();
 
         if (token != null) {
-          // 🛠️ FIXED: Changed collection from 'drivers' to 'users' to keep document data synced
           await _firestore.collection('users').doc(driverId).set({
-            'deviceToken': token,
+            'fcmToken': token,
           }, SetOptions(merge: true));
 
           debugPrint("FCM Token successfully saved for driver: $token");

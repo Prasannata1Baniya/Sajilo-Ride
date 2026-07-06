@@ -220,7 +220,8 @@ class _DriverMapPageState extends State<DriverMapPage> {
                       },
                       child: _isProcessing
                           ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text("ACCEPT RIDE"),
+                          : const Text("ACCEPT RIDE",
+                        style: TextStyle(color: Colors.white),),
                     ),
                   ),
                 ],

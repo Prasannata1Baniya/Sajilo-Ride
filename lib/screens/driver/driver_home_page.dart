@@ -299,7 +299,10 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => DriverMapPage(
-                          pickupLocation: LatLng((data['pickupLat'] as num).toDouble(), (data['pickupLng'] as num).toDouble()),
+                          pickupLocation: LatLng(
+                            (data['pickupLat'] as num?)?.toDouble() ?? 0.0,
+                            (data['pickupLng'] as num?)?.toDouble() ?? 0.0,
+                          ),
                           bookingId: docId,
                           bookingData: data,
                           driverId: driverId,
@@ -313,7 +316,7 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
               ],
             ),
 
-            const Spacer(),
+            const SizedBox(height: 16),
             OutlinedButton(
               onPressed:() => _declineRide(context, docId, driverId),
               style: OutlinedButton.styleFrom(shape: RoundedRectangleBorder(
