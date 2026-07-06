@@ -283,6 +283,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
       //String passengerPhone = userDoc.get('phone') ?? 'N/A';
       String passengerPhone = 'N/A';
       DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+
       final Map<String, dynamic> bookingData ={
         'passengerId': userId,
         'passengerPhone': passengerPhone,
@@ -302,12 +303,13 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
         'otp': (1000 + (DateTime.now().millisecondsSinceEpoch % 9000)).toString(),
       };
 
+      final String finalBookingId = bookingId ?? FirebaseFirestore.instance.collection('bookings').doc().id;
 
       if (userDoc.exists) {
         Map<String, dynamic>? data = userDoc.data() as Map<String, dynamic>?;
         passengerPhone = data?['phone'] ?? 'N/A';
       }
-      await FirebaseFirestore.instance.collection('bookings').doc(userId).set(bookingData);
+      await FirebaseFirestore.instance.collection('bookings').doc(finalBookingId).set(bookingData);
 
       debugPrint("DEBUG: Checking user document for ID: $userId");
       debugPrint("DEBUG: Data found: ${userDoc.data()}");

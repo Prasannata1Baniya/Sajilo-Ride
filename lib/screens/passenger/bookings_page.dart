@@ -222,7 +222,7 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
                 constraints: const BoxConstraints(), // Shrink the hit area
                 onPressed: () async {
                   await FirebaseFirestore.instance.collection('bookings').doc(docId).update({
-                    'status': 'archived_completed'
+                    'status': 'archived_search'
                   });
                 },
               ),
@@ -281,17 +281,13 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
               top: 8,
               child: IconButton(
                 icon: const Icon(Icons.close, color: Colors.grey),
-                /*onPressed: () async {
-                  // Mark as archived so it disappears from the list
-                  await FirebaseFirestore.instance.collection('bookings').doc(docId).update({
-                    'status': 'archived'
-                  });},*/
                 // Inside _buildActiveRideCard logic for 'X' button
                 onPressed: () async {
-                  String newStatus = (status == 'searching') ? 'archived_search' : 'archived_completed';
-
-                  await FirebaseFirestore.instance.collection('bookings').doc(docId).update({
-                    'status': newStatus
+                  await FirebaseFirestore.instance
+                      .collection('bookings')
+                      .doc(docId)
+                      .update({
+                    'status': 'archived_completed',
                   });
                 },
               ),

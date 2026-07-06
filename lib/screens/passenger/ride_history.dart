@@ -13,6 +13,14 @@ class RideHistoryContent extends StatelessWidget {
     final authProvider = Provider.of<AuthProviderMethod>(context);
     final userId = authProvider.user?.uid;
 
+
+    Future<void> cancelRide(String bookingId) async {
+      await FirebaseFirestore.instance.collection('bookings').doc(bookingId).update({
+        'status': 'cancelled', // Explicit status
+        'cancelledAt': FieldValue.serverTimestamp(),
+      });
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7F9),
       appBar: AppBar(
@@ -54,7 +62,8 @@ class RideHistoryContent extends StatelessWidget {
             itemCount: snapshot.data!.docs.length,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             itemBuilder: (context, index) {
-              var ride = snapshot.data!.docs[index].data() as Map<String, dynamic>;
+              final doc = snapshot.data!.docs[index];
+              final ride = doc.data() as Map<String, dynamic>;
               return _buildHistoryCard(ride);
             },
           );
@@ -68,7 +77,7 @@ class RideHistoryContent extends StatelessWidget {
     String formattedDate = DateFormat('MMM dd, yyyy • hh:mm a').format(date);
 
     String status = ride['status'] ?? 'completed';
-    bool isCancelled = status == 'cancelled';
+    //bool isCancelled = status == 'cancelled';
     // Logic:
     // 'cancelled' = User explicitly cancelled
     // 'archived' = User dismissed a search or a completed trip
@@ -76,7 +85,14 @@ class RideHistoryContent extends StatelessWidget {
 
     // bool isReallyCompleted = ride['status'] == 'completed' || (ride['status'] == 'archived' && ride['wasCompleted'] == true);
 
-    bool isReallyCompleted = ride['status'] == 'completed' || ride['status'] == 'archived_completed';
+    //bool isReallyCompleted = ride['status'] == 'completed' || ride['status'] == 'archived_completed';
+    final bool isReallyCompleted =
+        ride['status'] == 'completed' ||
+            ride['status'] == 'archived_completed';
+
+    final bool isCancelled =
+        ride['status'] == 'cancelled';
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -110,7 +126,9 @@ class RideHistoryContent extends StatelessWidget {
                       ),
                       child: Icon(
                         isCancelled ? Icons.cancel_outlined : Icons.directions_car_filled_rounded,
-                        color: isCancelled ? Colors.red : Colors.green,
+                        color: isCancelled
+                      ? Colors.red.withValues(alpha: 0.08)
+                      : Colors.green.withValues(alpha: 0.08),
                         size: 20,
                       ),
                     ),
@@ -182,13 +200,17 @@ class RideHistoryContent extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: isCancelled ? Colors.red.withValues(alpha: 0.08) : Colors.green.withValues(alpha: 0.08),
+                    color: isReallyCompleted
+                        ? Colors.green.withValues(alpha: 0.08)
+                        : Colors.red.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     isReallyCompleted ? "COMPLETED" : "CANCELLED",
                     style: TextStyle(
-                      color: isCancelled ? Colors.red.shade700 : Colors.green.shade700,
+                      color: isReallyCompleted
+                          ? Colors.green.shade700
+                          : Colors.red.shade700,
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.5,
