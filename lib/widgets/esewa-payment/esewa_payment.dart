@@ -12,7 +12,7 @@ class EsewaPaymentWidget {
   CarModel? selectedCar;
   double fare = 0;
 
-  void processEsewaSDKPayment({
+  /*void processEsewaSDKPayment({
     required BuildContext context,
     required Function(String, String) onConfirm,
     required Function(String) onError,
@@ -36,6 +36,37 @@ class EsewaPaymentWidget {
       );
     } catch (e) {
       debugPrint("eSewa Error: $e");
+    }
+  }*/
+
+  // Update your method signature
+  void processEsewaSDKPayment({
+    required BuildContext context,
+    required String productName,
+    required String productPrice,
+    required Function(String, String) onConfirm,
+    required Function(String) onError,
+  }) {
+    try {
+      EsewaFlutterSdk.initPayment(
+        esewaConfig: EsewaConfig(
+            environment: Environment.test,
+            clientId: PaymentConfig.clientId,
+            secretId: PaymentConfig.secretKey
+        ),
+        esewaPayment: EsewaPayment(
+          productId: "ride_${DateTime.now().millisecondsSinceEpoch}",
+          productName: productName, // Use the passed argument
+          productPrice: productPrice, // Use the passed argument
+          callbackUrl: '',
+        ),
+        onPaymentSuccess: (data) => onConfirm("paid", "eSewa"),
+        onPaymentFailure: (data) => onError("Payment Failed"),
+        onPaymentCancellation: (data) => debugPrint("Cancelled"),
+      );
+    } catch (e) {
+      debugPrint("eSewa Initialization Error: $e");
+      onError("Initialization error: $e");
     }
   }
 

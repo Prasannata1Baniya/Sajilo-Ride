@@ -1,36 +1,72 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:sajilo_ride/screens/driver/active_ride.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class DriverMapPage extends StatelessWidget {
+class DriverMapPage extends StatefulWidget {
   final LatLng pickupLocation;
   final String bookingId;
   final Map<String, dynamic> bookingData;
+  final String driverId;
 
   const DriverMapPage({
     super.key,
     required this.pickupLocation,
     required this.bookingId,
     required this.bookingData,
+    required this.driverId,
   });
 
+  @override
+  State<DriverMapPage> createState() => _DriverMapPageState();
+}
 
+class _DriverMapPageState extends State<DriverMapPage> {
   void _launchNavigation() async {
-    final url = 'google.navigation:q=${pickupLocation.latitude},${pickupLocation.longitude}';
+    final url = 'google.navigation:q=${widget.pickupLocation.latitude},${widget.pickupLocation.longitude}';
     if (await canLaunchUrl(Uri.parse(url))) {
       await launchUrl(Uri.parse(url));
     }
   }
 
+  // Add this method inside your DriverMapPage class
+  Future<void> _acceptRide(BuildContext context, String docId, String driverId) async {
+    try {
+      final docRef = FirebaseFirestore.instance.collection('bookings').doc(docId);
+
+      // Transaction ensures the ride is only accepted if status is still 'pending'
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        final snapshot = await transaction.get(docRef);
+        if (snapshot.data()?['status'] != 'pending') {
+          throw Exception("This ride has already been taken by another driver.");
+        }
+        transaction.update(docRef, {
+          'status': 'accepted',
+          'driverId': driverId,
+          'acceptedAt': FieldValue.serverTimestamp(),
+        });
+      });
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceAll("Exception: ", ""))),
+        );
+      }
+      rethrow;
+    }
+  }
+
+  bool _isProcessing = false;
+
   @override
   Widget build(BuildContext context) {
     // Safe dropoff coordinates
     final double dropoffLat =
-    (bookingData['dropoffLat'] ?? pickupLocation.latitude).toDouble();
+    (widget.bookingData['dropoffLat'] ?? widget.pickupLocation.latitude).toDouble();
     final double dropoffLng =
-    (bookingData['dropoffLng'] ?? pickupLocation.longitude).toDouble();
+    (widget.bookingData['dropoffLng'] ?? widget.pickupLocation.longitude).toDouble();
 
     return Scaffold(
       appBar: AppBar(
@@ -44,7 +80,7 @@ class DriverMapPage extends StatelessWidget {
           // 1. MAP showing pickup and dropoff pins
           FlutterMap(
             options: MapOptions(
-              initialCenter: pickupLocation,
+              initialCenter: widget.pickupLocation,
               initialZoom: 15.0,
             ),
             children: [
@@ -56,7 +92,7 @@ class DriverMapPage extends StatelessWidget {
                 markers: [
                   // Pickup marker (green)
                   Marker(
-                    point: pickupLocation,
+                    point: widget.pickupLocation,
                     width: 80,
                     height: 80,
                     child: const Column(
@@ -115,7 +151,7 @@ class DriverMapPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    bookingData['pickupAddress'] ?? "Navigate to pickup location",
+                    widget.bookingData['pickupAddress'] ?? "Navigate to pickup location",
                     textAlign: TextAlign.center,
                     style: const TextStyle(color: Colors.grey),
                   ),
@@ -124,18 +160,18 @@ class DriverMapPage extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "Fare: Rs ${bookingData['fare'] ?? '0'}",
+                        "Fare: Rs ${widget.bookingData['fare'] ?? '0'}",
                         style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.orange,
                             fontSize: 16),
                       ),
 
-                      if (bookingData['passengerPhone'] != null && bookingData['passengerPhone'].toString().isNotEmpty)
+                      if (widget.bookingData['passengerPhone'] != null && widget.bookingData['passengerPhone'].toString().isNotEmpty)
                         IconButton(
                           icon: const Icon(Icons.phone, color: Colors.blue),
                           onPressed: () async {
-                            final phone = bookingData['passengerPhone'];
+                            final phone = widget.bookingData['passengerPhone'];
                             final url = Uri.parse("tel:$phone");
                             if (await canLaunchUrl(url)) {
                               await launchUrl(url);
@@ -161,18 +197,30 @@ class DriverMapPage extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     height: 50,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                      ),
-                      onPressed: () => _goToActiveRide(context),
-                      child: const Text(
-                        "START RIDE",
-                        style: TextStyle(
-                            color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
+                    child:ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                      onPressed: _isProcessing ? null : () async {
+                        setState(() => _isProcessing = true);
+                        try {
+                          await _acceptRide(context, widget.bookingId, widget.driverId);
+                          if (context.mounted) {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ActiveRideContent(
+                                  bookingId: widget.bookingId,
+                                  bookingData: widget.bookingData,
+                                ),
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          setState(() => _isProcessing = false);
+                        }
+                      },
+                      child: _isProcessing
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text("ACCEPT RIDE"),
                     ),
                   ),
                 ],
@@ -180,19 +228,6 @@ class DriverMapPage extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-
-  void _goToActiveRide(BuildContext context) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ActiveRideContent(
-          bookingId: bookingId,
-          bookingData: bookingData,
-        ),
       ),
     );
   }

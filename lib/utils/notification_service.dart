@@ -40,6 +40,17 @@ class NotificationService {
 
     debugPrint('User permission status: ${settings.authorizationStatus}');
 
+    try {
+      String? token = await FirebaseMessaging.instance.getToken();
+
+      debugPrint("==================================");
+      debugPrint("FCM TOKEN:");
+      debugPrint(token);
+      debugPrint("==================================");
+    } catch (e) {
+      debugPrint("GET TOKEN ERROR: $e");
+    }
+
     // 2. Initialize Local Notifications
     const AndroidInitializationSettings androidSettings =
     AndroidInitializationSettings('@mipmap/ic_launcher');

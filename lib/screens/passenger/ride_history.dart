@@ -74,8 +74,9 @@ class RideHistoryContent extends StatelessWidget {
     // 'archived' = User dismissed a search or a completed trip
     // 'completed' = Actual successful trip
 
-     bool isReallyCompleted = ride['status'] == 'completed'
-        || (ride['status'] == 'archived' && ride['wasCompleted'] == true);
+    // bool isReallyCompleted = ride['status'] == 'completed' || (ride['status'] == 'archived' && ride['wasCompleted'] == true);
+
+    bool isReallyCompleted = ride['status'] == 'completed' || ride['status'] == 'archived_completed';
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(

@@ -29,9 +29,6 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
     });
   }
 
-
-  bool _isAccepting = false;
-
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProviderMethod>(context);
@@ -222,15 +219,13 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
           ),
         ],
       ),
-      //elevation: 5,
-      //shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
             Row(
               children: [
-
                 DriverCarAvatarWidget(driverId: data['driverId'] ?? 'unknown'),
                 const SizedBox(width: 15),
                 Expanded(
@@ -253,16 +248,52 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
               child: Divider(height: 1),
             ),
 
+            // --- REPLACEMENT FOR THE LOCATION ROW ---
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Column(
+                children: [
+                  // PICKUP ROW
+                  Row(
+                    children: [
+                      const Icon(Icons.radio_button_checked, color: Colors.green, size: 20),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text("PICKUP", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+                            Text(data['pickupAddress'] ?? 'Fetching...', style: const TextStyle(fontWeight: FontWeight.w500)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  // CONNECTOR LINE
+                  Container(height: 20, width: 2, margin: const EdgeInsets.only(left: 9), color: Colors.grey.shade300),
+                  // DROP-OFF ROW
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on, color: Colors.red, size: 20),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text("DROP-OFF", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+                            Text(data['dropoffAddress'] ?? 'Fetching...', style: const TextStyle(fontWeight: FontWeight.w500)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
             Row(
               children: [
-                const Icon(Icons.location_on, color: Colors.red),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text("Pickup: ${data['pickupAddress'] ?? 'Fetching...'}",
-                      style: const TextStyle(color: Colors.black54, fontSize: 13,)
-                  ),
-                ),
-                TextButton.icon(
+               TextButton.icon(
                   onPressed: () {
                     Navigator.push(
                       context,
@@ -271,45 +302,24 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
                           pickupLocation: LatLng((data['pickupLat'] as num).toDouble(), (data['pickupLng'] as num).toDouble()),
                           bookingId: docId,
                           bookingData: data,
+                          driverId: driverId,
                         ),
                       ),
                     );
                   },
                   icon: const Icon(Icons.map, size: 18),
-                  label: const Text("VIEW MAP"),
+                 label: const Text("VIEW MAP & ACCEPT"),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    //onPressed: () => _acceptRide(context, docId, driverId, data),
-                    onPressed: _isAccepting ? null : () async {
-                      setState(() => _isAccepting = true);
-                      await _acceptRide(context, docId, driverId, data);
-                      if (mounted) setState(() => _isAccepting = false);
-                    },
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-                    child: _isAccepting
-                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white))
-                        : const Text("ACCEPT RIDE"),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                OutlinedButton(
-                  onPressed: _isAccepting ? null : () => _declineRide(context, docId, driverId),
-                  style: OutlinedButton.styleFrom(shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                  foregroundColor: Colors.red),
-                  child: const Text("DECLINE"),
-                ),
-              ],
+
+            const Spacer(),
+            OutlinedButton(
+              onPressed:() => _declineRide(context, docId, driverId),
+              style: OutlinedButton.styleFrom(shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+              foregroundColor: Colors.red),
+              child: const Text("DECLINE"),
             )
           ],
         ),
@@ -345,31 +355,6 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
     }
   }
 
-  Future<void> _acceptRide(BuildContext context, String docId, String driverId, Map<String, dynamic> data) async {
-    try {
-      final docRef = FirebaseFirestore.instance.collection('bookings').doc(docId);
-
-      // Transaction ensures the write only happens if status is still 'pending'
-      await FirebaseFirestore.instance.runTransaction((transaction) async {
-        final snapshot = await transaction.get(docRef);
-        if (snapshot.data()?['status'] != 'pending') {
-          throw Exception("Ride already taken!");
-        }
-        transaction.update(docRef, {
-          'status': 'accepted',
-          'driverId': driverId,
-          'acceptedAt': FieldValue.serverTimestamp(),
-        });
-      });
-      /*if (context.mounted) {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => ActiveRideContent(bookingId: docId, bookingData: data)));
-      }*/
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceAll("Exception: ", ""))));
-      }
-    }
-  }
 
   Widget _buildNoRequests() {
     return Center(

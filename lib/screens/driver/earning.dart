@@ -29,7 +29,8 @@ class DriversEarningContent extends StatelessWidget {
         stream: FirebaseFirestore.instance
             .collection('bookings')
             .where('driverId', isEqualTo: driverId)
-            .where('status', isEqualTo: 'completed')
+            //.where('status', isEqualTo: 'completed')
+            .where('status', whereIn: ['completed', 'archived_completed'])
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {

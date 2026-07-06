@@ -221,7 +221,7 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
                 constraints: const BoxConstraints(), // Shrink the hit area
                 onPressed: () async {
                   await FirebaseFirestore.instance.collection('bookings').doc(docId).update({
-                    'status': 'archived'
+                    'status': 'archived_completed'
                   });
                 },
               ),

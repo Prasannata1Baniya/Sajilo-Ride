@@ -25,6 +25,7 @@ class PassengerHomeContent extends StatefulWidget {
 
 class _PassengerHomeContentState extends State<PassengerHomeContent> {
   final MapController _mapController = MapController();
+  bool isLoading = false;
 
   LatLng _currentCenter = const LatLng(27.7172, 85.3240);
   LatLng? pickupLocation;
@@ -47,7 +48,6 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
   void initState() {
     super.initState();
     _getCurrentLocation();
-    _listenToLiveDrivers();
     //_cheXckForActiveBooking();
   }
 
@@ -143,14 +143,28 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
   // --- CORE SYSTEM FUNCTIONALITIES (OSRM, Geo, Payments, FCM) ---
 
   final esewaHandler = EsewaPaymentWidget();
-  void _handleEsewaPayment() {
+  /*void _handleEsewaPayment() {
     esewaHandler.processEsewaSDKPayment(
       context: context,
       onConfirm: (status, method) => _confirmBooking(paymentStatus: status, method: method),
       onError: (message) => _showErrorSnackBar(message),
     );
-  }
+  }*/
 
+  void _handleEsewaPayment() {
+    if (selectedCar == null) {
+      _showErrorSnackBar("Please select a car first");
+      return;
+    }
+
+    esewaHandler.processEsewaSDKPayment(
+      context: context,
+      productName: selectedCar!.model,
+      productPrice: fare.toStringAsFixed(0),
+      onConfirm: (status, method) => _confirmBooking(paymentStatus: status, method: method),
+      onError: (message) => _showErrorSnackBar(message),
+    );
+  }
 
   Future<void> _getCurrentLocation() async {
     LocationPermission permission = await Geolocator.checkPermission();
@@ -191,6 +205,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
     });
 
     if (pickupLocation != null && dropOffLocation != null) {
+      _listenToLiveDrivers();
       final bounds = LatLngBounds.fromPoints([pickupLocation!, dropOffLocation!]);
       _mapController.fitCamera(CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(50)));
       _getRoute();
@@ -445,7 +460,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
   }
 
   Widget _buildBookingContent() {
-    bool isLoading = false;
+
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Column(
@@ -483,7 +498,8 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
           const Divider(height: 20),
 
           Expanded(
-            child: NearByRideSelector(
+            child: (pickupLocation != null && dropOffLocation != null)
+                ? NearByRideSelector(
               liveCars: liveCars,
               pickupLocation: pickupLocation,
               selectedCar: selectedCar,
@@ -494,6 +510,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
                   fare = updatedFare;
                 });
               },
+            ): const Center(child: Text("Set your destination")
             ),
           ),
 
@@ -515,9 +532,11 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
                       _handleEsewaPayment();
                     } else {
                       await _confirmBooking();
+                      setState(() => isLoading = false);
                     }
-                  } finally {
+                  } catch(e) {
                     setState(() => isLoading = false);
+                    _showErrorSnackBar("Error: $e");
                   }
                 },
               ),
