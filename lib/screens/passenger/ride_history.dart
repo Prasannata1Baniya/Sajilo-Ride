@@ -13,14 +13,6 @@ class RideHistoryContent extends StatelessWidget {
     final authProvider = Provider.of<AuthProviderMethod>(context);
     final userId = authProvider.user?.uid;
 
-
-    Future<void> cancelRide(String bookingId) async {
-      await FirebaseFirestore.instance.collection('bookings').doc(bookingId).update({
-        'status': 'cancelled', // Explicit status
-        'cancelledAt': FieldValue.serverTimestamp(),
-      });
-    }
-
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7F9),
       appBar: AppBar(
@@ -75,15 +67,6 @@ class RideHistoryContent extends StatelessWidget {
   Widget _buildHistoryCard(Map<String, dynamic> ride) {
     DateTime date = (ride['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now();
     String formattedDate = DateFormat('MMM dd, yyyy • hh:mm a').format(date);
-
-    String status = ride['status'] ?? 'completed';
-    //bool isCancelled = status == 'cancelled';
-    // Logic:
-    // 'cancelled' = User explicitly cancelled
-    // 'archived' = User dismissed a search or a completed trip
-    // 'completed' = Actual successful trip
-
-    // bool isReallyCompleted = ride['status'] == 'completed' || (ride['status'] == 'archived' && ride['wasCompleted'] == true);
 
     //bool isReallyCompleted = ride['status'] == 'completed' || ride['status'] == 'archived_completed';
     final bool isReallyCompleted =

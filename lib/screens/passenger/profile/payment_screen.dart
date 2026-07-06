@@ -66,36 +66,37 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 onPressed: () async {
                   final user = FirebaseAuth.instance.currentUser;
 
-                  if (user != null) {
-                    // 1. Show a loading indicator so the user knows it's saving
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (_) => const Center(child: CircularProgressIndicator()),
-                    );
-
-                    try {
-                      // 2. Save the preference to the user's document in Firestore
-                      await FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(user.uid)
-                          .update({'preferredPayment': _selectedMethod});
-
-                      // 3. Close the loading dialog
-                      if (context.mounted) Navigator.pop(context);
-
-                      // 4. Return the selected method to the previous screen
-                      if (context.mounted) Navigator.pop(context, _selectedMethod);
-
-                    } catch (e) {
-                      if (context.mounted) Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Failed to save preference")),
-                      );
-                    }
-                  } else {
-                    // If not logged in, just go back with the value
+                  if (user == null) {
                     Navigator.pop(context, _selectedMethod);
+                    return;
+                  }
+
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (_) => const Center(child: CircularProgressIndicator()),
+                  );
+
+                  try {
+                    await FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(user.uid)
+                        .update({'preferredPayment': _selectedMethod});
+
+                    if (!context.mounted) return;
+
+                    Navigator.pop(context);
+
+                    if (!context.mounted) return;
+                    Navigator.pop(context, _selectedMethod);
+
+                  } catch (e) {
+                    if (!context.mounted) return;
+                    Navigator.pop(context);
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Failed to save preference")),
+                    );
                   }
                 },
                 style: ElevatedButton.styleFrom(
