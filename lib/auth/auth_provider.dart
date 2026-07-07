@@ -188,20 +188,6 @@ class AuthProviderMethod extends ChangeNotifier {
     }
   }
 
-  /*Future<void> signOut() async {
-    // clear token field on sign-out to prevent stale tracking
-    if (user != null) {
-      try {
-        String role = await getUserRole(user!.uid);
-        if (role == 'driver') {
-          await _firestore.collection('drivers').doc(user!.uid).update({
-            'deviceToken': FieldValue.delete(),
-          });
-        }
-      } catch (_) {}
-    }
-    await _auth.signOut();
-  }*/
 
   Future<void> signOut() async {
     if (user == null) {
@@ -212,7 +198,7 @@ class AuthProviderMethod extends ChangeNotifier {
     try {
       // 1. Remove token from Firestore
       await _firestore.collection('users').doc(user!.uid).update({
-        'deviceToken': FieldValue.delete(),
+        'fcmToken': FieldValue.delete(),
       });
 
       // 2. Revoke FCM token

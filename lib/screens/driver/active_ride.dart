@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
 
+import '../../navbar/navbar_config.dart';
+import '../../widgets/app_shell.dart';
+
 class ActiveRideContent extends StatefulWidget {
   final String bookingId;
   final Map<String, dynamic> bookingData;
@@ -35,6 +38,15 @@ class _ActiveRideContentState extends State<ActiveRideContent> {
 
         final bookingData = snapshot.data!.data() as Map<String, dynamic>;
         final status = bookingData['status'];
+
+        if (status == 'completed') {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const AppShell(userRole: UserRole.driver, initialIndex: 0)),
+                  (route) => false,
+            );
+          });
+        }
 
         if (status == 'cancelled') {
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -144,11 +156,8 @@ class _ActiveRideContentState extends State<ActiveRideContent> {
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12)),
                           ),
-                          onPressed: () => _updateTripStatus(),
-                          child: Text(
-                            _currentStatus == 'accepted'
-                                ? "ARRIVED & START TRIP"
-                                : "ARRIVED & COMPLETE TRIP",
+                          onPressed: () => _updateTripStatus(status,bookingData),
+                          child: Text(status == 'accepted' ? "ARRIVED & START TRIP" : "ARRIVED & COMPLETE TRIP",
                             style: const TextStyle(color: Colors.white,
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold),
@@ -165,11 +174,10 @@ class _ActiveRideContentState extends State<ActiveRideContent> {
       },
     );
   }
-  Future<void> _updateTripStatus() async {
+  Future<void> _updateTripStatus(String currentStatus,Map<String, dynamic> liveData) async {
     final messenger = ScaffoldMessenger.of(context);
 
-    // 1. Handle OTP Verification for starting the trip
-    if (_currentStatus == 'accepted') {
+    if (currentStatus == 'accepted') {
       final otpController = TextEditingController();
 
       final bool? confirmed = await showModalBottomSheet<bool>(
@@ -203,13 +211,13 @@ class _ActiveRideContentState extends State<ActiveRideContent> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                 if (otpController.text.trim() == widget.bookingData['otp'].toString().trim()) {
+                 if (otpController.text.trim() == liveData['otp'].toString().trim()) {
                     Navigator.pop(context, true);
                   } else {
-                    // Use the captured messenger here
                     messenger.showSnackBar(const SnackBar(
                         content: Text("Invalid OTP"), backgroundColor: Colors.red));
                   }
+
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
@@ -225,12 +233,11 @@ class _ActiveRideContentState extends State<ActiveRideContent> {
         ),
       );
 
-      // If OTP was not confirmed, stop the function here
       if (confirmed != true) return;
     }
 
-    // 2. Perform the Firestore Update
-    final String nextStatus = _currentStatus == 'accepted' ? 'ongoing' : 'completed';
+
+    final String nextStatus = currentStatus == 'accepted' ? 'ongoing' : 'completed';
 
     try {
       Map<String, dynamic> updateData = {'status': nextStatus};
@@ -239,8 +246,7 @@ class _ActiveRideContentState extends State<ActiveRideContent> {
         updateData['startedAt'] = FieldValue.serverTimestamp();
       } else if (nextStatus == 'completed') {
         updateData['completedAt'] = FieldValue.serverTimestamp();
-        // Handle payment status
-        if (widget.bookingData['paymentStatus'] != 'paid') {
+        if (liveData['paymentStatus'] != 'paid') {
           updateData['paymentStatus'] = 'cash_collected';
         }
       }

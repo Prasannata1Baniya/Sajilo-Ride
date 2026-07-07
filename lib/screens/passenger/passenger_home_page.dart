@@ -55,6 +55,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
   }
 
   void _listenToLiveDrivers() {
+    _driverSubscription?.cancel();
     _driverSubscription = FirebaseFirestore.instance
         .collection('drivers')
         .where('isOnline', isEqualTo: true)
@@ -282,7 +283,13 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
       final String finalFareString = fare.toStringAsFixed(0);
       //String passengerPhone = userDoc.get('phone') ?? 'N/A';
       String passengerPhone = 'N/A';
+
       DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+
+       if (userDoc.exists) {
+        Map<String, dynamic>? data = userDoc.data() as Map<String, dynamic>?;
+        passengerPhone = data?['phone'] ?? 'N/A';
+      }
 
       final Map<String, dynamic> bookingData ={
         'passengerId': userId,

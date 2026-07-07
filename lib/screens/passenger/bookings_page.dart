@@ -7,7 +7,7 @@ import 'package:sajilo_ride/utils/phone_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../navbar/navbar_config.dart';
 import '../../widgets/app_shell.dart';
-import '../../widgets/bookings_ui_helper/bookings_widget.dart';
+import '../../widgets/passenger_widget/bookings_ui_helper/bookings_widget.dart';
 
 class MyBookingsPage extends StatefulWidget {
   const MyBookingsPage({super.key});

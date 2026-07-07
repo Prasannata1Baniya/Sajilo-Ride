@@ -20,8 +20,9 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  await NotificationService.initialize();
-
+  if (!kIsWeb) {
+    await NotificationService.initialize();
+  }
   runApp(const MyApp());
 }
 
@@ -117,6 +118,7 @@ class RoleWrapper extends StatelessWidget {
         } else {
           currentUserRole = UserRole.passenger;
         }
+        NotificationService.saveTokenAfterLogin();
 
         return AppShell(userRole: currentUserRole);
       },

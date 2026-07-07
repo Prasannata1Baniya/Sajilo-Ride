@@ -12,6 +12,8 @@ import 'package:sajilo_ride/auth/auth_provider.dart';
 import 'package:dart_geohash/dart_geohash.dart';
 import 'package:geolocator/geolocator.dart';
 
+import '../../widgets/drivers/cars_management_text_field.dart';
+
 class CarManagementContent extends StatefulWidget {
   const CarManagementContent({super.key});
 
@@ -336,10 +338,10 @@ class _CarManagementContentState extends State<CarManagementContent> {
               ),
 
               const SizedBox(height: 24),
-              _buildTextField(_modelController, "Car Model", "e.g. Toyota Corolla", Icons.car_rental),
-              _buildTextField(_plateController, "License Plate", "e.g. BA 1 PA 1234", Icons.tag),
-              _buildTextField(_numController, "Contact Phone", "e.g. 98XXXXXXXX", Icons.phone),
-              _buildTextField(_colorController, "Car Color", "e.g. White", Icons.color_lens),
+              buildTextField(_modelController, "Car Model", "e.g. Toyota Corolla", Icons.car_rental),
+              buildTextField(_plateController, "License Plate", "e.g. BA 1 PA 1234", Icons.tag),
+              buildTextField(_numController, "Contact Phone", "e.g. 98XXXXXXXX", Icons.phone),
+              buildTextField(_colorController, "Car Color", "e.g. White", Icons.color_lens),
 
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
@@ -347,12 +349,25 @@ class _CarManagementContentState extends State<CarManagementContent> {
                 items: ['Petrol', 'Diesel', 'Electric', 'Hybrid']
                     .map((v) => DropdownMenuItem(value: v, child: Text(v))).toList(),
                 onChanged: (val) => setState(() => _fuelType = val!),
-                decoration: const InputDecoration(labelText: "Fuel Type", border: OutlineInputBorder()),
+                decoration: InputDecoration(
+                  labelText: "Fuel Type",
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                  prefixIcon: Icon(Icons.local_gas_station, color: Colors.orange.shade700),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(color: Colors.grey.shade200, width: 2),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(color: Colors.orange.shade700, width: 2),
+                  ),
+                ),
               ),
               const SizedBox(height: 20),
 
-              _buildTextField(_priceController, "Price per km (Rs)", "e.g. 45", Icons.payment),
-              _buildTextField(_distanceController, "Search Distance Profile (km)", "e.g. 10", Icons.social_distance),
+              buildTextField(_priceController, "Price per km (Rs)", "e.g. 45", Icons.payment),
+              buildTextField(_distanceController, "Search Distance Profile (km)", "e.g. 10", Icons.social_distance),
 
               const SizedBox(height: 24),
               Row(
@@ -381,17 +396,6 @@ class _CarManagementContentState extends State<CarManagementContent> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildTextField(TextEditingController controller, String label, String hint, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(labelText: label, hintText: hint, prefixIcon: Icon(icon), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-        validator: (value) => value == null || value.isEmpty ? "Required field" : null,
       ),
     );
   }
