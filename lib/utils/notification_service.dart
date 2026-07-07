@@ -18,8 +18,9 @@ class NotificationService {
       importance: Importance.max,
     );
 
-    _notificationsPlugin.resolvePlatformSpecificImplementation;
-    AndroidFlutterLocalNotificationsPlugin().createNotificationChannel(channel);
+    await _notificationsPlugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
   }
 
   // --- SAVE TOKEN TO FIRESTORE ---
@@ -94,15 +95,7 @@ class NotificationService {
 
     await createChannel();
 
-    // 5. Listen for foreground messages
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      if (message.notification != null) {
-        _showLocalNotification(
-          message.notification!.title ?? "New Ride",
-          message.notification!.body ?? "You have a new request",
-        );
-      }
-    });
+
   }
 
   // Call this after login since user may not be logged in during initialize()
