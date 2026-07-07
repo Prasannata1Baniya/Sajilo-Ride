@@ -15,11 +15,15 @@ import 'screens/admin_web/admin_dashboard.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  await dotenv.load(fileName: ".env");
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    await dotenv.load(fileName: ".env");
+    debugPrint("DOTENV LOADED SUCCESSFULLY");
+  } catch (e) {
+    debugPrint("CRITICAL ERROR: Could not load .env file: $e");
+  }
+
   if (!kIsWeb) {
     await NotificationService.initialize();
   }

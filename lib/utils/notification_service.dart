@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -47,6 +48,18 @@ class NotificationService {
       badge: true,
       sound: true,
     );
+
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+    // 3. Foreground Message Handler
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      if (message.notification != null) {
+        _showLocalNotification(
+          message.notification!.title ?? "New Ride",
+          message.notification!.body ?? "Check your app for details",
+        );
+      }
+    });
 
     if (settings.authorizationStatus == AuthorizationStatus.denied) {
       debugPrint("User denied notification permission.");
@@ -124,4 +137,8 @@ class NotificationService {
       const NotificationDetails(android: androidDetails),
     );
   }
+}
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  debugPrint("Handling a background message: ${message.messageId}");
 }

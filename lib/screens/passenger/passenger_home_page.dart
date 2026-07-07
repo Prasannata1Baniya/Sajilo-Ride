@@ -214,6 +214,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
   Future<void> _sendNotificationToDriver(String driverId, String pickupAddr, String tripFare) async {
     try {
       DocumentSnapshot driverDoc = await FirebaseFirestore.instance.collection('users').doc(driverId).get();
+      debugPrint("Driver document exists: ${driverDoc.exists}");
       if (!driverDoc.exists) return;
 
       var driverData = driverDoc.data() as Map<String, dynamic>;
@@ -222,6 +223,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
         debugPrint("Driver has no FCM token");
         return;
       }
+      debugPrint("Creating service account...");
 
       final scopes = ['https://www.googleapis.com/auth/firebase.messaging'];
       final serviceAccountCredentials = auth.ServiceAccountCredentials.fromJson({
@@ -230,10 +232,18 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
         "private_key_id": dotenv.get("FCM_PRIVATE_KEY_ID"),
         "private_key": dotenv.get("FCM_PRIVATE_KEY").replaceAll(r'\n', '\n'),
         "client_email": dotenv.get("FCM_CLIENT_EMAIL"),
+        "client_id": dotenv.get("FCM_CLIENT_ID"),
+        "auth_uri": dotenv.get("FCM_AUTH_URI"),
+        "token_uri": dotenv.get("FCM_TOKEN_URI"),
+        "auth_provider_x509_cert_url": dotenv.get("FCM_AUTH_PROVIDER"),
+        "client_x509_cert_url": dotenv.get("FCM_CLIENT_URL"),
+        "universe_domain": dotenv.get("FCM_UNIVERSE_DOMAIN"),
       });
 
       final client = await auth.clientViaServiceAccount(serviceAccountCredentials, scopes);
       final String accessToken = client.credentials.accessToken.data;
+
+      debugPrint("Sending HTTP request...");
 
       final response = await http.post(
         Uri.parse('https://fcm.googleapis.com/v1/projects/${dotenv.get("FCM_PROJECT_ID")}/messages:send'),
@@ -263,6 +273,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
       client.close();
     } catch (e) {
       debugPrint("Notification Delivery Error: $e");
+      debugPrint(e.toString());
 
     }
   }
