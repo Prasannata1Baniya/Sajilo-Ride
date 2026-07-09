@@ -113,7 +113,8 @@ class NearByRideSelector extends StatelessWidget {
           itemBuilder: (context, index) {
             final currentCar = nearbyCars[index];
             bool isSel = selectedCar?.driverId == currentCar.driverId;
-            double currentFare = distance > 0 ? (distance * currentCar.pricePerKm) : 0;
+            // Dividing by 1000 to convert meters to kilometers
+            double currentFare = distance > 0 ? ((distance / 1000) * currentCar.pricePerKm) : 0;
 
             return ListTile(
               onTap: () async {
