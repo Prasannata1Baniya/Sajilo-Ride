@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
 import 'package:sajilo_ride/screens/driver/active_ride.dart';
+import 'package:sajilo_ride/utils/notification_service.dart';
 import '../../widgets/driver_car_avatar_widget.dart';
 import '../driver/driver_map_page.dart';
 
@@ -24,7 +25,7 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
       final authProvider = Provider.of<AuthProviderMethod>(context, listen: false);
       final driverId = authProvider.user?.uid;
       if (driverId != null) {
-        authProvider.saveDeviceToken(driverId);
+       NotificationService.saveTokenToFirestore(driverId);
       }
     });
   }

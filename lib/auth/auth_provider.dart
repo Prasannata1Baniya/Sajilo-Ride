@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
 import '../navbar/navbar_config.dart';
+import '../utils/notification_service.dart';
 
 class AuthProviderMethod extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -176,7 +177,7 @@ class AuthProviderMethod extends ChangeNotifier {
 
         // If they are a driver, register their notification device token immediately
         if (role == 'driver') {
-          await saveDeviceToken(loggedInUser.uid);
+          await NotificationService.saveTokenToFirestore(loggedInUser.uid);
         }
       }
 
@@ -211,35 +212,4 @@ class AuthProviderMethod extends ChangeNotifier {
     await _auth.signOut();
   }
 
-  // --- DEVICE TOKEN MANAGEMENT ---
-  Future<void> saveDeviceToken(String driverId) async {
-    try {
-      FirebaseMessaging messaging = FirebaseMessaging.instance;
-
-      // 1. Request notification permissions (vital for iOS and Android 13+)
-      NotificationSettings settings = await messaging.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-
-      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-        // 2. Get the unique FCM token
-        String? token = await messaging.getToken();
-
-        if (token != null) {
-          await _firestore.collection('users').doc(driverId).set({
-            'fcmToken': token,
-          }, SetOptions(merge: true));
-
-          debugPrint("FCM Token successfully saved for driver: $token");
-        }
-      } else {
-        debugPrint(
-            "User declined or has not accepted notification permissions.");
-      }
-    } catch (e) {
-      debugPrint("Error saving device token: $e");
-    }
-  }
 }

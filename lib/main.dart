@@ -25,10 +25,15 @@ void main() async {
   }
 
   if (!kIsWeb) {
-    await NotificationService.initialize();
+    try {
+      await NotificationService.initialize();
+    } catch (e) {
+      debugPrint("Notification Service failed to init: $e");
+    }
   }
   runApp(const MyApp());
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

@@ -24,17 +24,17 @@ class NotificationService {
   }
 
   // --- SAVE TOKEN TO FIRESTORE ---
-  static Future<void> _saveTokenToFirestore(String token) async {
+  static Future<void> saveTokenToFirestore(String token) async {
     try {
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid == null) {
         debugPrint("Cannot save token: user not logged in yet.");
         return;
       }
-      await FirebaseFirestore.instance.collection('users').doc(uid).update({
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'fcmToken': token,
         'tokenUpdatedAt': FieldValue.serverTimestamp(),
-      });
+      },SetOptions(merge: true));
       debugPrint("FCM token saved to Firestore successfully.");
     } catch (e) {
       debugPrint("Error saving device token: $e");
@@ -51,6 +51,7 @@ class NotificationService {
     );
 
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    debugPrint("STEP 1: Requesting permission");
 
     // 3. Foreground Message Handler
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -68,22 +69,31 @@ class NotificationService {
     }
 
     debugPrint('Notification permission: ${settings.authorizationStatus}');
+    debugPrint("STEP 2: Calling getToken()");
 
     // 2. Get and save FCM token
     try {
+
       String? token = await FirebaseMessaging.instance.getToken();
+      debugPrint("STEP 3: Token received");
+      debugPrint("TOKEN = $token");
+
       if (token != null) {
         debugPrint("FCM TOKEN: $token");
-        await _saveTokenToFirestore(token);
+        await saveTokenToFirestore(token);
       }
-    } catch (e) {
+      debugPrint("STEP 4: Token saved to Firestore");
+    } catch (e,stackTrace) {
       debugPrint("GET TOKEN ERROR: $e");
+      debugPrint("ERROR OCCURRED");
+      debugPrint(e.toString());
+      debugPrint(stackTrace.toString());
     }
 
     // 3. Listen for token refresh and re-save
     FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
       debugPrint("FCM token refreshed.");
-      await _saveTokenToFirestore(newToken);
+      await saveTokenToFirestore(newToken);
     });
 
     // 4. Initialize Local Notifications
@@ -98,12 +108,11 @@ class NotificationService {
 
   }
 
-  // Call this after login since user may not be logged in during initialize()
-  static Future<void> saveTokenAfterLogin() async {
+   static Future<void> saveTokenAfterLogin() async {
     try {
       String? token = await FirebaseMessaging.instance.getToken();
       if (token != null) {
-        await _saveTokenToFirestore(token);
+        await saveTokenToFirestore(token);
       }
     } catch (e) {
       debugPrint("Error saving token after login: $e");
