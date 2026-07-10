@@ -27,7 +27,7 @@ class RideHistoryContent extends StatelessWidget {
         stream: FirebaseFirestore.instance
             .collection('bookings')
             .where('passengerId', isEqualTo: userId)
-            .where('status', whereIn: ['completed', 'cancelled','archived_completed'])
+            .where('status', whereIn: ['completed', 'cancelled','reviewed','archived_completed'])
             .orderBy('timestamp', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
@@ -68,9 +68,9 @@ class RideHistoryContent extends StatelessWidget {
     DateTime date = (ride['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now();
     String formattedDate = DateFormat('MMM dd, yyyy • hh:mm a').format(date);
 
-    //bool isReallyCompleted = ride['status'] == 'completed' || ride['status'] == 'archived_completed';
     final bool isReallyCompleted =
         ride['status'] == 'completed' ||
+            ride['status'] == 'reviewed' ||
             ride['status'] == 'archived_completed';
 
     final bool isCancelled =

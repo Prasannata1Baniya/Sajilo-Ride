@@ -31,12 +31,12 @@ class _DriverMapPageState extends State<DriverMapPage> {
     }
   }
 
-  // Add this method inside your DriverMapPage class
+
   Future<void> _acceptRide(BuildContext context, String docId, String driverId) async {
     try {
       final docRef = FirebaseFirestore.instance.collection('bookings').doc(docId);
 
-      // Transaction ensures the ride is only accepted if status is still 'pending'
+
       await FirebaseFirestore.instance.runTransaction((transaction) async {
         final snapshot = await transaction.get(docRef);
         if (snapshot.data()?['status'] != 'pending') {
@@ -188,8 +188,8 @@ class _DriverMapPageState extends State<DriverMapPage> {
                     child: ElevatedButton.icon(
                       icon: const Icon(Icons.navigation, color: Colors.white),
                       label: const Text("NAVIGATE", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.blue), // Navigation is blue
-                      onPressed: _launchNavigation, // Use your defined function!
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                      onPressed: _launchNavigation,
                     ),
                   ),
 

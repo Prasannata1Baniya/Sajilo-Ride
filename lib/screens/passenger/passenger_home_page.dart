@@ -30,7 +30,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
   LatLng? pickupLocation;
   LatLng? dropOffLocation;
   List<LatLng> routePoints = [];
-  double distance = 0;
+  double tripDistanceKm = 0;
   double fare = 0;
   CarModel? selectedCar;
   String selectedPayment = "Cash";
@@ -190,8 +190,9 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
     }
   }
 
-  Future<void> _getRoute() async {
-    final url = Uri.parse("https://router.project-osrm.org/route/v1/driving/${pickupLocation!.longitude},${pickupLocation!.latitude};${dropOffLocation!.longitude},${dropOffLocation!.latitude}?overview=full&geometries=geojson");
+  /*Future<void> _getRoute() async {
+    final url = Uri.parse("https://router.project-osrm.org/route/v1/driving/${pickupLocation!.longitude},
+    ${pickupLocation!.latitude};${dropOffLocation!.longitude},${dropOffLocation!.latitude}?overview=full&geometries=geojson");
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -207,6 +208,58 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
       }
     } catch (e) {
       debugPrint("Route error: $e");
+    }
+  }*/
+  Future<void> _getRoute() async {
+    if (pickupLocation == null || dropOffLocation == null) return;
+
+    final url = Uri.parse(
+      "https://router.project-osrm.org/route/v1/driving/"
+          "${pickupLocation!.longitude},${pickupLocation!.latitude};"
+          "${dropOffLocation!.longitude},${dropOffLocation!.latitude}"
+          "?overview=full&geometries=geojson",
+    );
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode != 200) {
+        debugPrint("OSRM Error: ${response.statusCode}");
+        return;
+      }
+
+      final data = jsonDecode(response.body);
+
+      if (data["routes"] == null || data["routes"].isEmpty) {
+        return;
+      }
+
+      final route = data["routes"][0];
+
+      final List coordinates = route["geometry"]["coordinates"];
+
+      final List<LatLng> points = coordinates
+          .map<LatLng>((e) => LatLng(e[1], e[0]))
+          .toList();
+
+      final double km = (route["distance"] as num).toDouble() / 1000;
+      debugPrint("OSRM distance = $km km");
+
+      setState(() {
+        routePoints = points;
+        tripDistanceKm = km;
+
+        debugPrint("Selected car: ${selectedCar?.model}");
+        debugPrint("Price/km: ${selectedCar?.pricePerKm}");
+
+        if (selectedCar != null) {
+          fare = tripDistanceKm * selectedCar!.pricePerKm;
+        }
+      });
+
+      debugPrint("Trip Distance: $tripDistanceKm km");
+    } catch (e) {
+      debugPrint("OSRM Error: $e");
     }
   }
 
@@ -349,7 +402,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
             car: selectedCar!,
             userRole: UserRole.passenger,
             fare: fare,
-            distance: distance,
+            distance: tripDistanceKm,
           ),
         ),
       );
@@ -476,7 +529,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
               liveCars: liveCars,
               pickupLocation: pickupLocation,
               selectedCar: selectedCar,
-              distance: distance,
+              tripDistanceKm: tripDistanceKm,
               onCarSelected: (car, updatedFare) {
                 setState(() {
                   selectedCar = car;

@@ -38,22 +38,18 @@ class _RatingScreenState extends State<RatingScreen> {
           throw Exception("This ride has already been rated.");
         }
 
-        // 1. Get current driver stats
         final currentRating = (driverSnapshot.data()?['averageRating'] ?? 0.0).toDouble();
         final totalRatings = (driverSnapshot.data()?['totalRatings'] ?? 0).toInt();
 
-        // 2. Calculate new values
         final newTotalRatings = totalRatings + 1;
         final newAverage = ((currentRating * totalRatings) + _rating) / newTotalRatings;
 
-        // 3. Update Booking
         transaction.update(bookingRef, {
           'rating': _rating,
           'feedback': _feedbackController.text.trim(),
           'status': 'reviewed',
         });
 
-        // 4. Update Driver Stats (Combined into ONE update)
         transaction.update(driverRef, {
           'averageRating': newAverage,
           'totalRatings': newTotalRatings,

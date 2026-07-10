@@ -57,12 +57,12 @@ class NearByRideSelector extends StatelessWidget {
   final List<CarModel> liveCars;
   final LatLng? pickupLocation;
   final CarModel? selectedCar;
-  final double distance;
+  final double tripDistanceKm;
   final Function(CarModel car, double calculatedFare) onCarSelected;
 
   const NearByRideSelector({
     super.key,required this.liveCars, required this.pickupLocation, required this.selectedCar,
-    required this.distance, required this.onCarSelected,
+    required this.tripDistanceKm, required this.onCarSelected,
   });
 
   @override
@@ -113,8 +113,10 @@ class NearByRideSelector extends StatelessWidget {
           itemBuilder: (context, index) {
             final currentCar = nearbyCars[index];
             bool isSel = selectedCar?.driverId == currentCar.driverId;
-            // Dividing by 1000 to convert meters to kilometers
-            double currentFare = distance > 0 ? ((distance / 1000) * currentCar.pricePerKm) : 0;
+
+            double currentFare = tripDistanceKm > 0
+                ? (tripDistanceKm * currentCar.pricePerKm)
+                : 0;
 
             return ListTile(
               onTap: () async {
@@ -149,10 +151,10 @@ class NearByRideSelector extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    distance > 0 ? "Rs ${currentFare.toStringAsFixed(0)}" : "Fare Info",
+                    tripDistanceKm > 0 ? "Rs ${currentFare.toStringAsFixed(0)}" : "Fare Info",
                     style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 16),
                   ),
-                  if (distance > 0)
+                  if (tripDistanceKm > 0)
                     Text("${currentCar.pricePerKm}/km", style: const TextStyle(fontSize: 10, color: Colors.grey)),
                 ],
               ),
