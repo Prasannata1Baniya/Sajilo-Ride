@@ -155,7 +155,13 @@ class NearByRideSelector extends StatelessWidget {
                     style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 16),
                   ),
                   if (tripDistanceKm > 0)
-                    Text("${currentCar.pricePerKm}/km", style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                    //Text("${currentCar.pricePerKm}/km", style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                    Text(
+                      "${tripDistanceKm.toStringAsFixed(1)} km",
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey,
+                      ),),
                 ],
               ),
               selected: isSel,

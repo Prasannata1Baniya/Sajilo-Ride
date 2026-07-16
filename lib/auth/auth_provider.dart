@@ -129,12 +129,22 @@ class AuthProviderMethod extends ChangeNotifier {
 
       return 'Success';
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'email-already-in-use') {
-        return "This email is already registered. Please login instead.";
+      switch (e.code) {
+        case 'email-already-in-use':
+          return "This email is already registered.";
+
+        case 'invalid-email':
+          return "Please enter a valid email address.";
+
+        case 'weak-password':
+          return "Password is too weak.";
+
+        case 'network-request-failed':
+          return "NO_INTERNET";
+
+        default:
+          return "Registration failed. Please try again.";
       }
-      return e.message ?? "An authentication error occurred.";
-    } catch (e) {
-      return e.toString();
     }
   }
 
@@ -172,7 +182,6 @@ class AuthProviderMethod extends ChangeNotifier {
       User? loggedInUser = credential.user;
 
       if (loggedInUser != null) {
-        // Check the role from Firestore
         String role = await getUserRole(loggedInUser.uid);
 
         // If they are a driver, register their notification device token immediately
@@ -183,9 +192,25 @@ class AuthProviderMethod extends ChangeNotifier {
 
       return 'Success';
     } on FirebaseAuthException catch (e) {
-      return e.message ?? 'An unknown error occurred.';
-    } catch (e) {
-      return e.toString();
+      switch (e.code) {
+        case 'invalid-email':
+          return "Please enter a valid email.";
+
+        case 'invalid-credential':
+          return "Incorrect email or password.";
+
+        case 'user-not-found':
+          return "Account not found.";
+
+        case 'wrong-password':
+          return "Incorrect password.";
+
+        case 'network-request-failed':
+          return "NO_INTERNET";
+
+        default:
+          return "Login failed. Please try again.";
+      }
     }
   }
 
@@ -197,18 +222,15 @@ class AuthProviderMethod extends ChangeNotifier {
     }
 
     try {
-      // 1. Remove token from Firestore
       await _firestore.collection('users').doc(user!.uid).update({
         'fcmToken': FieldValue.delete(),
       });
 
-      // 2. Revoke FCM token
       await FirebaseMessaging.instance.deleteToken();
     } catch (e) {
       debugPrint("Error clearing token on sign-out: $e");
     }
 
-    // 3. Always sign out, even if the cleanup failed
     await _auth.signOut();
   }
 

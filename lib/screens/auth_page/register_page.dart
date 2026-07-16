@@ -147,6 +147,22 @@ class _RegisterPageState extends State<RegisterPage> {
     return snapshot.docs.isNotEmpty;
   }
 
+  String? validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Please enter your password.";
+    }
+
+    if (value.length < 8 ||
+        !RegExp(r'[A-Z]').hasMatch(value) ||
+        !RegExp(r'[a-z]').hasMatch(value) ||
+        !RegExp(r'[0-9]').hasMatch(value) ||
+        !RegExp(r'[!@#\$%^&*(),.?":{}|<>]').hasMatch(value)) {
+      return "Password must be at least 8 characters and include uppercase, lowercase, number and special character.";
+    }
+
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -320,7 +336,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                           onPressed: () => setState(() => _isPasswordObscured = !_isPasswordObscured),
                                         ),
                                       ),
-                                      validator: (value) => (value == null || value.length < 6) ? 'Short password (min 6 chars)' : null,
+                                      validator:validatePassword,
                                     ),
                                   ],
                                 ),
@@ -486,26 +502,3 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 }
-
-
-
-/*bool _isCurrentStepValid() {
-    if (currentStep == 1) {
-      if (!_step1Key.currentState!.validate()) return false;
-      final nameValid = _nameController.text.trim().isNotEmpty;
-      final emailValid = _emailController.text.trim().contains('@');
-      return nameValid && emailValid;
-    }
-    if (currentStep == 2) {
-      if (!_step2Key.currentState!.validate()) return false;
-      final phoneValid = _numController.text.length >= 10;
-      final passwordValid = _passwordController.text.length >= 6;
-      return phoneValid && passwordValid;
-    }
-
-    if (currentStep == 3) {
-      if (!_step3Key.currentState!.validate()) return false;
-      return selectedRole != null;
-    }
-    return false;
-  }*/

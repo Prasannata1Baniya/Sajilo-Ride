@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
@@ -16,6 +19,7 @@ class DriverHomeContent extends StatefulWidget {
 }
 
 class _DriverHomeContentState extends State<DriverHomeContent> {
+  bool _trackingStarted = false;
 
   @override
   void initState() {
@@ -28,6 +32,36 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
        NotificationService.saveTokenToFirestore(driverId);
       }
     });
+  }
+  StreamSubscription<Position>? _positionSubscription;
+
+  void _startLocationUpdates(String driverId) {
+    _positionSubscription =
+        Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 20,
+          ),
+        ).listen((Position position) async {
+
+          await FirebaseFirestore.instance
+              .collection("drivers")
+              .doc(driverId)
+              .update({
+            "latitude": position.latitude,
+            "longitude": position.longitude,
+          });
+        });
+  }
+
+  void _stopLocationUpdates() {
+    _positionSubscription?.cancel();
+  }
+
+  @override
+  void dispose() {
+    _stopLocationUpdates();
+    super.dispose();
   }
 
   @override
@@ -71,6 +105,12 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
 
             // 3. FINAL ROUTING: Show Dashboard, Rejected, or Review screens
             if (rawStatus == 'approved' || rawStatus == 'verified' || isApproved) {
+
+              if (!_trackingStarted) {
+                _trackingStarted = true;
+                _startLocationUpdates(driverId);
+              }
+
               return _buildRequestsDashboard(driverId);
             }
             if (rawStatus == 'rejected' || rawStatus == 'failed') {
@@ -188,7 +228,8 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
               ),
               const SizedBox(height: 16),
               const Text(
-                "Your submitted documents could not be verified by our team. Please contact administrative support to re-upload clear credentials.",
+                "Your submitted documents could not be verified by our team."
+                    " Please contact administrative support to re-upload clear credentials.",
                 style: TextStyle(fontSize: 15, color: Colors.black54, height: 1.4),
                 textAlign: TextAlign.center,
               ),
@@ -242,6 +283,7 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
                 Text("Rs ${data['fare'] ?? '0'}", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.orange)),
               ],
             ),
+
             //const Divider(height: 30),
 
             const Padding(

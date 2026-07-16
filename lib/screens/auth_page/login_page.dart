@@ -7,6 +7,7 @@ import 'package:sajilo_ride/utils/input_decoration.dart';
 import 'package:sajilo_ride/utils/text_styles.dart';
 import '../../navbar/navbar_config.dart';
 import '../../widgets/app_shell.dart';
+import '../no_internet_screens.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -41,6 +42,16 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (!mounted) return;
+
+      if (message == "NO_INTERNET") {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const NoInternetScreen(),
+          ),
+        );
+        return;
+      }
 
       if (message == 'Success') {
         String roleString = await authProvider.getUserRole(authProvider.user!.uid);
@@ -167,10 +178,12 @@ class _LoginPageState extends State<LoginPage> {
                                   size: 20,
                                 ),
                               ),
-                              validator: (value) =>
-                              (value == null || !value.contains('@'))
-                                  ? 'Invalid email'
-                                  : null,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return "Please enter your password";
+                                }
+                                return null;
+                              },
                             ),
                             const SizedBox(height: 18),
 

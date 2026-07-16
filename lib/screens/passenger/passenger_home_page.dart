@@ -111,7 +111,6 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
       //onConfirm: (status, method) => _confirmBooking(paymentStatus: status, method: method),
       bookingId: bookingId,
       onConfirm: (status, method) async {
-        // 2. Only save the booking to Firestore AFTER payment succeeds
         await _confirmBooking(paymentStatus: status, method: method, bookingId: bookingId);
         if (mounted) setState(() => isLoading = false);
       },
@@ -190,26 +189,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
     }
   }
 
-  /*Future<void> _getRoute() async {
-    final url = Uri.parse("https://router.project-osrm.org/route/v1/driving/${pickupLocation!.longitude},
-    ${pickupLocation!.latitude};${dropOffLocation!.longitude},${dropOffLocation!.latitude}?overview=full&geometries=geojson");
-    try {
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final routes = data['routes'] as List;
-        if (routes.isEmpty) return;
-        final coords = routes[0]['geometry']['coordinates'];
-        setState(() {
-          routePoints = coords.map<LatLng>((c) => LatLng(c[1], c[0])).toList();
-          distance = routes[0]['distance'] / 1000.0;
-          if (selectedCar != null) fare = distance * selectedCar!.pricePerKm;
-        });
-      }
-    } catch (e) {
-      debugPrint("Route error: $e");
-    }
-  }*/
+
   Future<void> _getRoute() async {
     if (pickupLocation == null || dropOffLocation == null) return;
 

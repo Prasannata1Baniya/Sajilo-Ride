@@ -9,6 +9,7 @@ import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
 import '../../../navbar/navbar_config.dart';
 import '../../../widgets/app_shell.dart';
+import '../../no_internet_screens.dart';
 import 'face_recognition_service.dart';
 
 class DriverVerificationPage extends StatefulWidget {
@@ -189,6 +190,16 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
+    if (message == "NO_INTERNET") {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const NoInternetScreen(),
+        ),
+      );
+      return;
+    }
+
     if (message == 'Success') {
       _showSnackBar("Account created! Welcome onboard.", isError: false);
       Navigator.of(context).pushAndRemoveUntil(
@@ -354,7 +365,7 @@ class _DriverVerificationPageState extends State<DriverVerificationPage> {
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Colors.black)
                       : const Text("FINISH REGISTRATION",
-                      style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)),
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                 ),
               ),
             ],

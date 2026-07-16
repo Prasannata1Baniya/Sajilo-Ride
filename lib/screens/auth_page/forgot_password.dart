@@ -2,6 +2,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sajilo_ride/utils/input_decoration.dart';
 
+
+//"Email not found" is not displayed because Firebase's Email Enumeration Protection hides whether an email exists.
+// This is a built-in security feature that prevents attackers from identifying registered accounts,
+// so the app shows the same message regardless of whether the email is registered.
+
+
 class ForgotPassword extends StatefulWidget {
   const ForgotPassword({super.key});
 
@@ -23,8 +29,6 @@ class _ForgotPasswordState extends State<ForgotPassword> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Changed to white for a cleaner, modern look,
-      // or you can use Colors.white.withOpacity(0.95)
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Reset Password', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -43,7 +47,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
               const SizedBox(height: 20),
               const Text(
                 'Receive an email to reset your password',
-                style: TextStyle(fontSize: 16, color: Colors.black54),
+                style: TextStyle(fontSize: 18, color: Colors.black54),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 30),

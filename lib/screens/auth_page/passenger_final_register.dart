@@ -4,6 +4,7 @@ import 'package:sajilo_ride/auth/auth_provider.dart';
 
 import '../../navbar/navbar_config.dart';
 import '../../widgets/app_shell.dart';
+import '../no_internet_screens.dart';
 
 class PassengerFinalRegisterPage extends StatefulWidget {
   final String name;
@@ -49,6 +50,16 @@ class _PassengerFinalRegisterPageState
     );
 
     if (!mounted) return;
+
+    if (message == "NO_INTERNET") {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const NoInternetScreen(),
+        ),
+      );
+      return;
+    }
 
     if (message == 'Success') {
       ScaffoldMessenger.of(context).showSnackBar(
