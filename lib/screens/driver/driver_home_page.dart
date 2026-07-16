@@ -51,6 +51,7 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
             "latitude": position.latitude,
             "longitude": position.longitude,
           });
+          debugPrint("Firestore Updated");
         });
   }
 

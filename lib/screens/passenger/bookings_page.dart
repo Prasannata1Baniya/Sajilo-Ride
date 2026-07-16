@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_ride/auth/auth_provider.dart';
 import 'package:sajilo_ride/screens/passenger/rating_screen.dart';
@@ -233,7 +234,7 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
                 SizedBox(width: 15),
                 Expanded(
                   child: Text(
-                    "Your previous driver was unavailable. Search again in Home page...",
+                    "The assigned driver declined your ride. Please search again.",
                     style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange),
                   ),
                 ),
@@ -408,32 +409,70 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
               color: const Color(0xFFF9FAFB),
               child: Column(
                 children: [
-                  if (status == 'accepted') ...[
-                    const SizedBox(height: 10),
-                    ElevatedButton.icon(
-                      onPressed: () async {
-                        final messenger = ScaffoldMessenger.of(context);
-                        final driverId = data['driverId'];
-                        String? phone = data['phone'] ?? 'Not Provided';
 
-                        if (phone == null || phone.isEmpty) {
-                          final driverDoc = await FirebaseFirestore.instance.collection('drivers').doc(driverId).get();
-                          phone = driverDoc.data()?['phone'];
-                        }
-                        if (phone != null && phone.isNotEmpty) {
-                          final Uri launchUri = Uri(scheme: 'tel', path: phone);
-                          await launchUrl(launchUri);
-                        } else {
-                          messenger.showSnackBar(
-                            const SnackBar(content: Text("Driver phone number not available")),
+                    if (status == 'accepted') ...[
+                      StreamBuilder<DocumentSnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection("drivers")
+                            .doc(data["driverId"])
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData || !snapshot.data!.exists) {
+                            return const SizedBox();
+                          }
+
+                          final driverData = snapshot.data!.data() as Map<String, dynamic>;
+
+                          if (driverData["latitude"] == null ||
+                              driverData["longitude"] == null) {
+                            return const Text("Fetching driver's location...");
+                          }
+
+                          double driverLat = (driverData["latitude"] as num).toDouble();
+                          double driverLng = (driverData["longitude"] as num).toDouble();
+
+                          double pickupLat = (data["pickupLat"] as num).toDouble();
+                          double pickupLng = (data["pickupLng"] as num).toDouble();
+
+                          double distance = Geolocator.distanceBetween(
+                            driverLat,
+                            driverLng,
+                            pickupLat,
+                            pickupLng,
                           );
-                        }
-                      },
-                      icon: const Icon(Icons.phone),
-                      label: const Text("Call Driver"),
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.black, foregroundColor: Colors.white),
-                    ),
-                  ],
+
+                          double km = distance / 1000;
+                          return Text(
+                            "Driver is ${km.toStringAsFixed(1)} km away",
+                          );
+                        },
+                      ),
+
+                      const SizedBox(height: 10),
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          final messenger = ScaffoldMessenger.of(context);
+                          final driverId = data['driverId'];
+                          String? phone = data['phone'] ?? 'Not Provided';
+
+                          if (phone == null || phone.isEmpty) {
+                            final driverDoc = await FirebaseFirestore.instance.collection('drivers').doc(driverId).get();
+                            phone = driverDoc.data()?['phone'];
+                          }
+                          if (phone != null && phone.isNotEmpty) {
+                            final Uri launchUri = Uri(scheme: 'tel', path: phone);
+                            await launchUrl(launchUri);
+                          } else {
+                            messenger.showSnackBar(
+                              const SnackBar(content: Text("Driver phone number not available")),
+                            );
+                          }
+                        },
+                        icon: const Icon(Icons.phone),
+                        label: const Text("Call Driver"),
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.black, foregroundColor: Colors.white),
+                      ),
+                    ],
 
                   if (status == 'pending') ...[
                     const LinearProgressIndicator(color: Colors.orange, backgroundColor: Color(0xFFEEEEEE)),
@@ -463,7 +502,7 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.orange.shade100)),
                       child: Center(
-                          child: Text("Verification OTP: ${data['otp'] ?? '----'}",
+                          child: Text("Ride Verification Code OTP: ${data['otp'] ?? '----'}",
                             style:  TextStyle(fontWeight: FontWeight.bold, fontSize: 16,
                            color: Colors.orange, letterSpacing: 2),
                           ),

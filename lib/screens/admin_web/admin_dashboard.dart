@@ -33,6 +33,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   Future<void> _approveDriver(String uid, String name) async {
     try {
       await _db.collection('users').doc(uid).update({
+        //'verificationStatus': 'approved',
         'isVerified': true,
       });
       if (mounted) {
@@ -45,11 +46,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     }
   }
 
-  // Helper to handle rejecting / deleting unverified entries safely
   Future<void> _rejectDriver(String uid, String name) async {
     try {
-      // You can either delete the doc or update a status like 'isRejected: true'
-      await _db.collection('users').doc(uid).delete();
+      await _db.collection('users').doc(uid).update({
+        //'verificationStatus': 'rejected',
+        'isVerified': false,
+      });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("$name verification application rejected."), backgroundColor: Colors.redAccent),
