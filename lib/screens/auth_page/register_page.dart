@@ -111,8 +111,8 @@ class _RegisterPageState extends State<RegisterPage> {
         );
         if (result is String) {
           setState(() {
-            error = result;     // Show the error message
-            currentStep = 1;    // Send them back to the email field
+            error = result;
+            currentStep = 1;
             _isLoading = false;
           });
         }

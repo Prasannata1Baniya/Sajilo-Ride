@@ -206,8 +206,8 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                               ),
                               validator: (value) =>
-                              (value == null || value.length < 6)
-                                  ? 'Short password'
+                              (value == null )
+                                  ? 'Password is required'
                                   : null,
                             ),
 
