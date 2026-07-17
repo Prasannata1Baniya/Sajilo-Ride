@@ -36,7 +36,8 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                 Align(
                   alignment: Alignment.topCenter,
                   child: const Text(
-                    'SAJILO YATRA',
+                    //'SAJILO YATRA',
+                    'SAJILO RIDE',
                     style: TextStyle(
                       fontSize: 22,
                       color: Colors.white,
@@ -193,7 +194,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                   image: DecorationImage(
                     image: isDesktop
                         ? const AssetImage("assets/images/onboarding_bg.png")
-                        : const AssetImage("assets/images/onboarding_bg(mobile).png"),
+                        : const AssetImage("assets/images/onboarding_bg(mobile)1.png"),
                     fit: BoxFit.cover,
                   ),
                 ),

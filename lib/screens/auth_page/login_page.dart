@@ -121,7 +121,8 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   const SizedBox(height: 20),
                   const Text(
-                      "Sajilo Yatra",
+                    //"Sajilo Yatra",
+                      "Sajilo Ride",
                       style: AppTextStyles.headingWhite
                   ),
                   const SizedBox(height: 6),

@@ -146,7 +146,7 @@ class DriversEarningContent extends StatelessWidget {
                         leading: Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(color: Colors.green.shade50, borderRadius: BorderRadius.circular(12)),
-                          child: const Icon(Icons.currency_rupee, color: Colors.green),
+                          child: const Icon(Icons.money, color: Colors.green),
                         ),
                         title: Text(
                           data['model'] ?? "Ride",
