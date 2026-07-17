@@ -410,42 +410,6 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
                 children: [
 
                     if (status == 'accepted') ...[
-                      /*StreamBuilder<DocumentSnapshot>(
-                        stream: FirebaseFirestore.instance
-                            .collection("drivers")
-                            .doc(data["driverId"])
-                            .snapshots(),
-                        builder: (context, snapshot) {
-                          if (!snapshot.hasData || !snapshot.data!.exists) {
-                            return const SizedBox();
-                          }
-
-                          final driverData = snapshot.data!.data() as Map<String, dynamic>;
-
-                          if (driverData["latitude"] == null ||
-                              driverData["longitude"] == null) {
-                            return const Text("Fetching driver's location...");
-                          }
-
-                          double driverLat = (driverData["latitude"] as num).toDouble();
-                          double driverLng = (driverData["longitude"] as num).toDouble();
-
-                          double pickupLat = (data["pickupLat"] as num).toDouble();
-                          double pickupLng = (data["pickupLng"] as num).toDouble();
-
-                          double distance = Geolocator.distanceBetween(
-                            driverLat,
-                            driverLng,
-                            pickupLat,
-                            pickupLng,
-                          );
-
-                          double km = distance / 1000;
-                          return Text(
-                            "Driver is ${km.toStringAsFixed(1)} km away",
-                          );
-                        },
-                      ),*/
 
                       const SizedBox(height: 10),
                       ElevatedButton.icon(

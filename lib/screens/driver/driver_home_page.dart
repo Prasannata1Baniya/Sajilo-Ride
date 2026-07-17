@@ -88,7 +88,6 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
           );
         }
 
-        // 2. SECOND LEVEL: If no active trip, check account verification status
         return StreamBuilder<DocumentSnapshot>(
           stream: FirebaseFirestore.instance.collection('users').doc(driverId).snapshots(),
           builder: (context, userSnapshot) {
@@ -104,7 +103,6 @@ class _DriverHomeContentState extends State<DriverHomeContent> {
             String rawStatus = (userData['verificationStatus'] ?? userData['status'] ?? 'pending').toString().toLowerCase().trim();
             bool isApproved = userData['isApproved'] == true || userData['approved'] == true || userData['isVerified'] == true;
 
-            // 3. FINAL ROUTING: Show Dashboard, Rejected, or Review screens
             if (rawStatus == 'approved' || rawStatus == 'verified' || isApproved) {
 
               if (!_trackingStarted) {

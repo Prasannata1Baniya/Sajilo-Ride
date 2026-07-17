@@ -254,7 +254,6 @@ class _RegisterPageState extends State<RegisterPage> {
                           IndexedStack(
                             index: currentStep - 1,
                             children: [
-                              // STEP 1: IDENTITY
                               Form(
                                 key: _step1Key,
                                 //autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -308,7 +307,6 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ),
                               ),
 
-                              // --- STEP 2: SECURITY & PHONE ---
                               Form(
                                 key: _step2Key,
                                 //autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -345,7 +343,6 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ),
                               ),
 
-                              // --- STEP 3: ROLE SELECTION ---
                               Form(
                                 key: _step3Key,
                                 //autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -404,7 +401,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
                           const SizedBox(height: 30),
 
-                          // --- NAVIGATION BUTTONS ---
                           SizedBox(
                             width: double.infinity,
                             height: 54,
@@ -418,9 +414,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               ),
 
                               onPressed: _isLoading ? null : () async {
-                                // 1. First, validate the form for the current step
                                 if (!_isCurrentStepValid()) return;
-                                // 2. If at Step 1, run the email check immediately
                                 if (currentStep == 1) {
                                   setState(() => _isLoading = true);
                                   bool exists = await emailExists(_emailController.text.trim());
@@ -429,10 +423,9 @@ class _RegisterPageState extends State<RegisterPage> {
                                       error = "This email is already registered.";
                                       _isLoading = false;
                                     });
-                                    return; // Stop here! Do not go to Step 2.
+                                    return;
                                   }
 
-                                  // Email is fine, move to step 2
                                   setState(() {
                                     error = null;
                                     _isLoading = false;

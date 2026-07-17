@@ -49,7 +49,6 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
 
                 const Spacer(),
 
-                // --- Action Interaction Button ---
                 _buildGetStartedButton(context),
               ],
             ),

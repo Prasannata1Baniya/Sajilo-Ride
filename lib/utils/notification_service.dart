@@ -23,7 +23,6 @@ class NotificationService {
         ?.createNotificationChannel(channel);
   }
 
-  // --- SAVE TOKEN TO FIRESTORE ---
   static Future<void> saveTokenToFirestore(String token) async {
     try {
       final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -42,7 +41,6 @@ class NotificationService {
   }
 
   static Future<void> initialize() async {
-    // 1. Request Permission
     NotificationSettings settings =
     await FirebaseMessaging.instance.requestPermission(
       alert: true,
@@ -53,7 +51,6 @@ class NotificationService {
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     debugPrint("STEP 1: Requesting permission");
 
-    // 3. Foreground Message Handler
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       if (message.notification != null) {
         _showLocalNotification(
@@ -71,7 +68,6 @@ class NotificationService {
     debugPrint('Notification permission: ${settings.authorizationStatus}');
     debugPrint("STEP 2: Calling getToken()");
 
-    // 2. Get and save FCM token
     try {
 
       String? token = await FirebaseMessaging.instance.getToken();
@@ -90,13 +86,11 @@ class NotificationService {
       debugPrint(stackTrace.toString());
     }
 
-    // 3. Listen for token refresh and re-save
     FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
       debugPrint("FCM token refreshed.");
       await saveTokenToFirestore(newToken);
     });
 
-    // 4. Initialize Local Notifications
     const AndroidInitializationSettings androidSettings =
     AndroidInitializationSettings('@mipmap/ic_launcher');
     const InitializationSettings initSettings =

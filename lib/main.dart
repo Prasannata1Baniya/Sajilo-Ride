@@ -40,7 +40,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Only load the mobile AuthProvider if the platform is NOT Web.
     if (kIsWeb) {
       return const MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -82,7 +81,6 @@ class RoleWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // FIXED: Cleaned up a subtle spacing syntax error in ".currentUser"
     final String? uid = FirebaseAuth.instance.currentUser?.uid;
 
     if (uid == null) {

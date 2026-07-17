@@ -102,16 +102,13 @@ class _CarManagementContentState extends State<CarManagementContent> {
 
     try {
 
-      // 🛠️ 1. Check if system location services are enabled
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         throw 'Location services are disabled on your device. Please turn on your phone GPS.';
       }
 
-      // 🛠️ 2. Check current permission status
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
-        // Request permission dynamically
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
           throw 'Location permissions are denied. Please allow location access to register your car.';

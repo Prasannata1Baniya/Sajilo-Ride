@@ -9,7 +9,6 @@ class DriverCarAvatarWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<DocumentSnapshot>(
-      // Fetch the document directly from the 'drivers' collection
       future: FirebaseFirestore.instance.collection('drivers').doc(driverId).get(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -32,7 +31,6 @@ class DriverCarAvatarWidget extends StatelessWidget {
           );
         }
 
-        // Fallback if driver data is missing
         return const CircleAvatar(radius: 30, child: Icon(Icons.person_off));
       },
     );

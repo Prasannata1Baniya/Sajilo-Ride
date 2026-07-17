@@ -13,7 +13,6 @@ class CarDriverDetailPage extends StatefulWidget {
 
 class _CarDriverDetailPageState extends State<CarDriverDetailPage> {
 
-  // Moved inside the State class to be accessible by the UI
   Future<void> _makePhoneCall(String phoneNumber) async {
     final Uri launchUri = Uri(
       scheme: 'tel',
@@ -42,7 +41,6 @@ class _CarDriverDetailPageState extends State<CarDriverDetailPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // 1. TOP CAR HERO IMAGE
             Container(
               height: 220,
               width: double.infinity,
@@ -61,7 +59,6 @@ class _CarDriverDetailPageState extends State<CarDriverDetailPage> {
               padding: const EdgeInsets.all(20.0),
               child: Column(
                 children: [
-                  // 2. VEHICLE INFO CARD
                   _buildSectionCard(
                     title: "Vehicle Information",
                     icon: Icons.directions_car,
@@ -78,7 +75,6 @@ class _CarDriverDetailPageState extends State<CarDriverDetailPage> {
 
                   const SizedBox(height: 20),
 
-                  // 3. DRIVER INFO CARD
                   _buildSectionCard(
                     title: "Driver Details",
                     icon: Icons.person,
@@ -92,7 +88,6 @@ class _CarDriverDetailPageState extends State<CarDriverDetailPage> {
                               .doc(widget.car.driverId)
                               .snapshots(),
                           builder: (context, snapshot) {
-                            // Show a placeholder or the old value while loading
                             if (!snapshot.hasData || !snapshot.data!.exists) {
                               return Row(children: [const Icon(Icons.star, color: Colors.amber, size: 18),
                                 Text(widget.car.rating.toString())]);
@@ -100,7 +95,7 @@ class _CarDriverDetailPageState extends State<CarDriverDetailPage> {
 
                             var data = snapshot.data!.data() as Map<String, dynamic>;
                             double rating = (data['averageRating'] ?? 0.0).toDouble();
-                            // You can also fetch total rides if you store that in Firestore
+                            // we can also fetch total rides if you store that in Firestore
                             var totalRides = data['totalRides'] ?? 0;
 
                             return Row(
