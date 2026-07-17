@@ -411,7 +411,7 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
                 children: [
 
                     if (status == 'accepted') ...[
-                      StreamBuilder<DocumentSnapshot>(
+                      /*StreamBuilder<DocumentSnapshot>(
                         stream: FirebaseFirestore.instance
                             .collection("drivers")
                             .doc(data["driverId"])
@@ -446,7 +446,7 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
                             "Driver is ${km.toStringAsFixed(1)} km away",
                           );
                         },
-                      ),
+                      ),*/
 
                       const SizedBox(height: 10),
                       ElevatedButton.icon(
@@ -502,7 +502,7 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.orange.shade100)),
                       child: Center(
-                          child: Text("Ride Verification Code OTP: ${data['otp'] ?? '----'}",
+                          child: Text("Ride Verification Code: ${data['otp'] ?? '----'}",
                             style:  TextStyle(fontWeight: FontWeight.bold, fontSize: 16,
                            color: Colors.orange, letterSpacing: 2),
                           ),

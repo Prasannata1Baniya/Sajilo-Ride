@@ -27,7 +27,7 @@ class NotificationsScreen extends StatelessWidget {
       ),
       body: StreamBuilder(
         stream:currentUserId == null
-            ? const Stream.empty() // Handle case where user is not logged in
+            ? const Stream.empty()
             : FirebaseFirestore.instance
             .collection('users')
             .doc(currentUserId)

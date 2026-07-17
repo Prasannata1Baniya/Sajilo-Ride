@@ -123,15 +123,6 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
-  /*Future<bool> emailExists(String email) async {
-    final snapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .where('email', isEqualTo: email.toLowerCase())
-        .limit(1)
-        .get();
-
-    return snapshot.docs.isNotEmpty;
-  }*/
   Future<bool> emailExists(String email) async {
     final String normalizedEmail = email.toLowerCase().trim();
 
@@ -149,15 +140,27 @@ class _RegisterPageState extends State<RegisterPage> {
 
   String? validatePassword(String? value) {
     if (value == null || value.isEmpty) {
-      return "Please enter your password.";
+      return "Password is required";
     }
 
-    if (value.length < 8 ||
-        !RegExp(r'[A-Z]').hasMatch(value) ||
-        !RegExp(r'[a-z]').hasMatch(value) ||
-        !RegExp(r'[0-9]').hasMatch(value) ||
-        !RegExp(r'[!@#\$%^&*(),.?":{}|<>]').hasMatch(value)) {
-      return "Password must be at least 8 characters and include uppercase, lowercase, number and special character.";
+    if (value.length < 8) {
+      return "Password must be at least 8 characters";
+    }
+
+    if (!RegExp(r'[A-Z]').hasMatch(value)) {
+      return "Password must contain an uppercase letter";
+    }
+
+    if (!RegExp(r'[a-z]').hasMatch(value)) {
+      return "Password must contain a lowercase letter";
+    }
+
+    if (!RegExp(r'[0-9]').hasMatch(value)) {
+      return "Password must contain a number";
+    }
+
+    if (!RegExp(r'[!@#\$%^&*(),.?":{}|<>]').hasMatch(value)) {
+      return "Password must contain a special character";
     }
 
     return null;
@@ -168,7 +171,7 @@ class _RegisterPageState extends State<RegisterPage> {
     return Scaffold(
       body: Stack(
         children: [
-          // 1. BACKGROUND IMAGE
+
           Positioned.fill(
             child: Image.asset(
               "assets/images/car_background.png",
