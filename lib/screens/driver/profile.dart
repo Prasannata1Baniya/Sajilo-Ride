@@ -36,56 +36,64 @@ class DriverProfileContent extends StatelessWidget {
             ),
             child: Column(
               children: [
-                
-                FutureBuilder(
-                    future: Future.wait([
-                      FirebaseFirestore.instance.collection('drivers').doc(user?.uid).get(),
-                      FirebaseFirestore.instance.collection('users').doc(user?.uid).get(),
-                    ]),
-                    builder: (context, AsyncSnapshot<List<DocumentSnapshot>> snapshot){
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const CircleAvatar(radius: 50, backgroundColor: Colors.grey);
-                      }
 
-                      if (!snapshot.hasData || snapshot.data![0].data() == null) {
-                        // Return a default "unverified" UI
-                        return const CircleAvatar(
-                          radius: 50,
-                          backgroundColor: Colors.orange,
-                          child: Icon(Icons.person, size: 50, color: Colors.white),
-                        );
-                      }
+                StreamBuilder<DocumentSnapshot>(
+                  stream: FirebaseFirestore.instance.collection('drivers').doc(user?.uid).snapshots(),
+                  builder: (context, driverSnapshot) {
+                    return StreamBuilder<DocumentSnapshot>(
+                      stream: FirebaseFirestore.instance.collection('users').doc(user?.uid).snapshots(),
+                      builder: (context, userSnapshot) {
 
-                      final driverData = snapshot.data![0].data() as Map<String, dynamic>;
-                      final userData = snapshot.data![1].data() as Map<String, dynamic>;
-                      final rating = (driverData['averageRating'] ?? 0.0).toDouble();
-                      final isVerified = userData['isVerified'] ?? false;
+                        // 1. Check if both have data
+                        if (!driverSnapshot.hasData || !userSnapshot.hasData) {
+                          return const CircleAvatar(radius: 50, backgroundColor: Colors.grey);
+                        }
 
-                      return Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          const CircleAvatar(
+                        // 2. Safely access data
+                        final driverDoc = driverSnapshot.data!;
+                        final userDoc = userSnapshot.data!;
+
+                        // Check if documents actually exist in Firestore
+                        if (!driverDoc.exists || !userDoc.exists) {
+                          return const CircleAvatar(
                             radius: 50,
                             backgroundColor: Colors.orange,
                             child: Icon(Icons.person, size: 50, color: Colors.white),
-                          ),
+                          );
+                        }
 
-                          // Positioned Rating Badge
-                          if (isVerified)
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.amber, width: 2),
-                                boxShadow: [
-                                  BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4, offset: const Offset(0, 2))
-                                ],
-                              ),
-                              child: Row(
+                        final driverData = driverDoc.data() as Map<String, dynamic>;
+                        final userData = userDoc.data() as Map<String, dynamic>;
+
+                        final rating = (driverData['averageRating'] ?? 0.0).toDouble();
+                        final isVerified = userData['isVerified'] ?? false;
+
+                        // Return your UI here...
+                        return Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            const CircleAvatar(
+                              radius: 50,
+                              backgroundColor: Colors.orange,
+                              child: Icon(Icons.person, size: 50, color: Colors.white),
+                            ),
+
+                            // Positioned Rating Badge
+                            if (isVerified)
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(color: Colors.amber, width: 2),
+                                    boxShadow: [
+                                      BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4, offset: const Offset(0, 2))
+                                    ],
+                                  ),
+                                  child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       const Icon(Icons.star, color: Colors.amber, size: 14),
@@ -96,11 +104,13 @@ class DriverProfileContent extends StatelessWidget {
                                       ),
                                     ],
                                   ),
-                            ),
-                          ),
-                        ],
-                      );
-                    }
+                                ),
+                              ),
+                          ],
+                        );
+                      },
+                    );
+                  },
                 ),
 
                 const SizedBox(height: 15),

@@ -23,7 +23,7 @@ class PassengerHomeContent extends StatefulWidget {
   State<PassengerHomeContent> createState() => _PassengerHomeContentState();
 }
 
-class _PassengerHomeContentState extends State<PassengerHomeContent> {
+class _PassengerHomeContentState extends State<PassengerHomeContent> with WidgetsBindingObserver{
   final MapController _mapController = MapController();
   bool isLoading = false;
   LatLng _currentCenter = const LatLng(27.7172, 85.3240);
@@ -43,15 +43,26 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _getCurrentLocation();
-    //_cheXckForActiveBooking();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _driverSubscription?.cancel();
     _mapController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (isLoading) {
+        debugPrint("App resumed, forcing isLoading to false.");
+        setState(() => isLoading = false);
+      }
+    }
   }
 
   void _listenToLiveDrivers() {
@@ -59,13 +70,13 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
     _driverSubscription = FirebaseFirestore.instance
         .collection('drivers')
         .where('isOnline', isEqualTo: true)
+        .where('isAvailable', isEqualTo: true)
         .snapshots()
         .listen((snapshot) {
       List<CarModel> updatedCars = [];
 
       for (var doc in snapshot.docs) {
         final data = doc.data();
-
         if (data['latitude'] != null && data['longitude'] != null) {
           try {
             updatedCars.add(CarModel.fromMap(data, doc.id));
@@ -77,15 +88,10 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
 
       setState(() {
         liveCars = updatedCars;
-
-        if (selectedCar == null && updatedCars.isNotEmpty) {
-          selectedCar = updatedCars.first;
-        } else if (selectedCar != null) {
+        if (selectedCar != null) {
           bool stillOnline = updatedCars.any((car) => car.driverId == selectedCar!.driverId);
-          if (stillOnline) {
-            selectedCar = updatedCars.firstWhere((car) => car.driverId == selectedCar!.driverId);
-          } else {
-            selectedCar = updatedCars.isNotEmpty ? updatedCars.first : null;
+          if (!stillOnline) {
+            selectedCar = null;
           }
         }
       });
@@ -99,6 +105,7 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
 
   void _handleEsewaPayment() {
     if (selectedCar == null) {
+      setState(() => isLoading = false);
       _showErrorSnackBar("Please select a car first");
       return;
     }
@@ -111,11 +118,16 @@ class _PassengerHomeContentState extends State<PassengerHomeContent> {
       //onConfirm: (status, method) => _confirmBooking(paymentStatus: status, method: method),
       bookingId: bookingId,
       onConfirm: (status, method) async {
-        await _confirmBooking(paymentStatus: status, method: method, bookingId: bookingId);
-        if (mounted) setState(() => isLoading = false);
+        try {
+          await _confirmBooking(paymentStatus: status, method: method, bookingId: bookingId);
+        } catch (e) {
+          _showErrorSnackBar("Booking failed: $e");
+        } finally {
+          if (mounted) setState(() => isLoading = false);
+        }
       },
       onError: (message) {
-        if (mounted) setState(() => isLoading = false);
+        if (mounted) setState(() => isLoading = false); // Unlock on error
         _showErrorSnackBar(message);
       },
     );

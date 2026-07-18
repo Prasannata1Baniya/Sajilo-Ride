@@ -47,6 +47,14 @@ class _DriverMapPageState extends State<DriverMapPage> {
           'driverId': driverId,
           'acceptedAt': FieldValue.serverTimestamp(),
         });
+
+        transaction.update(
+          FirebaseFirestore.instance.collection('drivers').doc(driverId),
+          {
+            'isAvailable': false,
+          },
+        );
+
       });
     } catch (e) {
       if (context.mounted) {

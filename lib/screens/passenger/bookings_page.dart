@@ -102,7 +102,7 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
       if (!confirm) return;
 
       try {
-        await FirebaseFirestore.instance
+        /*await FirebaseFirestore.instance
             .collection('bookings')
             .doc(docId)
             .update(
@@ -110,7 +110,30 @@ class _MyBookingsPageState extends State<MyBookingsPage> {
               'status': 'cancelled',
               'paymentStatus': isPaid ? 'refund_initiated' : 'unpaid',
               'cancelledAt': FieldValue.serverTimestamp(),
-            });
+            });*/
+        final driverId = data['driverId'];
+
+        final batch = FirebaseFirestore.instance.batch();
+
+        batch.update(
+          FirebaseFirestore.instance.collection('bookings').doc(docId),
+          {
+            'status': 'cancelled',
+            'paymentStatus': isPaid ? 'refund_initiated' : 'unpaid',
+            'cancelledAt': FieldValue.serverTimestamp(),
+          },
+        );
+
+        if (driverId != null) {
+          batch.update(
+            FirebaseFirestore.instance.collection('drivers').doc(driverId),
+            {
+              'isAvailable': true,
+            },
+          );
+        }
+
+        await batch.commit();
 
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

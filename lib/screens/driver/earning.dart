@@ -29,7 +29,7 @@ class DriversEarningContent extends StatelessWidget {
             .collection('bookings')
             .where('driverId', isEqualTo: driverId)
             //.where('status', isEqualTo: 'completed')
-            .where('status', whereIn: ['completed', 'archived_completed'])
+            .where('status', whereIn: ['completed', 'archived_completed','reviewed'])
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {

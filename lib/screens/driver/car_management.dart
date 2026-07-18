@@ -151,6 +151,7 @@ class _CarManagementContentState extends State<CarManagementContent> {
         'pricePerKm': double.tryParse(_priceController.text) ?? 0.0,
         'distance': double.tryParse(_distanceController.text) ?? 0.0,
         'isOnline': true,
+        'isAvailable': true,
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 

@@ -252,7 +252,14 @@ class _ActiveRideContentState extends State<ActiveRideContent> {
       }
 
       await FirebaseFirestore.instance.collection('bookings').doc(widget.bookingId).update(updateData);
-
+      if (nextStatus == 'completed') {
+        await FirebaseFirestore.instance
+            .collection('drivers')
+            .doc(liveData['driverId'])
+            .update({
+          'isAvailable': true,
+        });
+      }
       if (mounted && nextStatus == 'completed') {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Trip Completed Successfully!")));
       }
